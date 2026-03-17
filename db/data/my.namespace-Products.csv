@@ -1,0 +1,6 @@
+ID,code,name,type,image,weight,grossPrice,netPrice,stock
+11111111-1111-1111-1111-111111111111,BH-OLLA-24,Olla acero inoxidable 24 cm,Olla,/assets/products/bh-olla-24.png,2.80,89.90,74.30,120
+22222222-2222-2222-2222-222222222222,BH-OLLA-SET,Cacerola con tapa 20 cm,Olla,/assets/products/bh-olla-set.png,1.95,64.50,53.31,85
+33333333-3333-3333-3333-333333333333,BH-SARTEN-28,Sartén antiadherente 28 cm,Sartén,/assets/products/bh-sarten-28.png,1.15,49.90,41.24,210
+44444444-4444-4444-4444-444444444444,BH-SARTEN-GRILL,Sartén grill aluminio fundido 26 cm,Sartén,/assets/products/bh-sarten-grill.png,1.65,59.90,49.50,95
+55555555-5555-5555-5555-555555555555,BH-PACK-COOK,Pack cocina 3 piezas inducción,Pack,/assets/products/bh-pack-cook.png,5.40,159.90,132.15,40

@@ -1,0 +1,45 @@
+{
+  "name": "berlingerhaus-backoffice",
+  "version": "1.0.0",
+  "description": "SAP CAP backend for a kitchenware distributor backoffice.",
+  "private": true,
+  "scripts": {
+    "start": "cds serve",
+    "start:render": "node scripts/render-start.js",
+    "watch": "cds watch",
+    "build": "cds build",
+    "compile": "cds compile srv/admin-service.cds"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
+  "cds": {
+    "server": {
+      "index": false
+    },
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "impl": "@cap-js/sqlite",
+        "credentials": {
+          "url": "db.sqlite"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@cap-js/postgres": "^1.14.2",
+    "@cap-js/sqlite": "^1.11.1",
+    "@sap/cds": "^8.9.9",
+    "exceljs": "^4.4.0",
+    "multer": "^2.0.2",
+    "pdfkit": "^0.17.2"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^8.9.9",
+    "localtunnel": "^2.0.2"
+  }
+}

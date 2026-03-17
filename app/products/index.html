@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Productos · BerlingerHaus Backoffice</title>
+  <style>
+    :root {
+      --sap-bg: #f5f6f7;
+      --sap-surface: #ffffff;
+      --sap-border: #d5dadd;
+      --sap-primary: #0a6ed1;
+      --sap-primary-hover: #085caf;
+      --sap-secondary: #eef4fb;
+      --sap-text: #1d2d3e;
+      --sap-muted: #5b738b;
+      --sap-success: #107e3e;
+      --sap-warning: #e76500;
+      --sap-shadow: 0 0.5rem 1.4rem rgba(27, 54, 81, 0.1);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "72", "Segoe UI", Arial, sans-serif;
+      color: var(--sap-text);
+      background: linear-gradient(180deg, #eef4fb 0%, #f6f7f8 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 20px 36px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .title-block h1 {
+      margin: 0 0 6px;
+      font-size: 2rem;
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--sap-muted);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: 0.18s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+    }
+
+    .button-primary {
+      background: var(--sap-primary);
+      color: #fff;
+    }
+
+    .button-primary:hover { background: var(--sap-primary-hover); }
+
+    .button-secondary {
+      background: var(--sap-secondary);
+      color: var(--sap-primary);
+      border: 1px solid #c0d8f3;
+    }
+
+    .button-secondary:hover { background: #dfeefe; }
+
+    .button[disabled] {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .status-pill {
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      background: #edf2f7;
+      color: var(--sap-muted);
+    }
+
+    .status-pill.editing {
+      background: rgba(16, 126, 62, 0.12);
+      color: var(--sap-success);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 22px;
+    }
+
+    .panel {
+      background: var(--sap-surface);
+      border: 1px solid var(--sap-border);
+      border-radius: var(--radius);
+      box-shadow: var(--sap-shadow);
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e8ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .panel-header p {
+      margin: 4px 0 0;
+      color: var(--sap-muted);
+      font-size: 0.92rem;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--sap-border);
+      font: inherit;
+      margin: 16px 0;
+    }
+
+    .product-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 12px 14px;
+      max-height: 760px;
+      overflow: auto;
+    }
+
+    .product-item {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 14px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.18s ease;
+      margin-bottom: 10px;
+    }
+
+    .product-item:hover,
+    .product-item.active {
+      border-color: #b7d3f2;
+      background: #f5faff;
+    }
+
+    .thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: #f1f4f7;
+      object-fit: cover;
+      border: 1px solid #e1e6eb;
+    }
+
+    .thumb-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8ca0b3;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .product-meta strong {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .product-meta span {
+      display: block;
+      color: var(--sap-muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+    }
+
+    .detail-content {
+      padding: 16px 22px 22px;
+    }
+
+    .empty-state {
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--sap-muted);
+      padding: 32px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      align-items: start;
+      gap: 24px;
+    }
+
+    .image-card {
+      border: 1px solid #e3e8ec;
+      border-radius: 18px;
+      padding: 18px;
+      background: #fbfcfd;
+      display: grid;
+      gap: 16px;
+    }
+
+    .preview-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 18px;
+      background: #eef3f8;
+      border: 1px solid #dbe3ea;
+    }
+
+    .preview-empty {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      border: 1px dashed #cfd9e2;
+      background: #f6f9fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--sap-muted);
+      font-weight: 700;
+      padding: 24px;
+    }
+
+    .upload-wrap {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .upload-wrap input[type="file"] {
+      width: 100%;
+      font: inherit;
+    }
+
+    .upload-hint {
+      margin: 0;
+      color: var(--sap-muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .cover-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cover-meta strong {
+      font-size: 1rem;
+    }
+
+    .cover-meta span {
+      color: var(--sap-muted);
+      font-size: 0.9rem;
+    }
+
+    .gallery-wrap {
+      display: grid;
+      gap: 12px;
+    }
+
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gallery-header strong {
+      font-size: 0.96rem;
+    }
+
+    .gallery-header span {
+      color: var(--sap-muted);
+      font-size: 0.88rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .gallery-item,
+    .gallery-empty {
+      border: 1px solid #dbe3ea;
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .gallery-item.cover {
+      border-color: #8cb8e8;
+      box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.08);
+    }
+
+    .gallery-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 0.82;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #eef3f8;
+      border: 1px solid #dbe3ea;
+    }
+
+    .gallery-caption {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .gallery-caption strong {
+      font-size: 0.88rem;
+    }
+
+    .cover-badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(10, 110, 209, 0.12);
+      color: var(--sap-primary);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .gallery-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .gallery-actions .button {
+      min-height: 34px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    .gallery-empty {
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--sap-muted);
+      font-size: 0.92rem;
+      background: #f8fafc;
+      border-style: dashed;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      align-content: start;
+      gap: 16px 18px;
+    }
+
+    .field {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field label {
+      font-weight: 700;
+      font-size: 0.94rem;
+    }
+
+    .field input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--sap-border);
+      min-height: 52px;
+      padding: 10px 14px;
+      font: inherit;
+      background: #fff;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: #8cb8e8;
+      box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.12);
+    }
+
+    .field input:disabled {
+      background: #f5f7f9;
+      color: #60758b;
+      cursor: default;
+    }
+
+    .message {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .message.success {
+      display: block;
+      background: rgba(16, 126, 62, 0.1);
+      color: var(--sap-success);
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(231, 101, 0, 0.12);
+      color: var(--sap-warning);
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <div class="topbar">
+      <div class="title-block">
+        <h1>Gestión de productos</h1>
+        <p>Selecciona un producto para verlo. Solo se puede modificar cuando activas <strong>Modo editar</strong>.</p>
+      </div>
+      <div class="toolbar">
+        <a class="button button-secondary" href="/">Volver al inicio</a>
+        <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="createButton" type="button">Crear producto</button>
+        <a class="button button-secondary" href="/backoffice/products/export.xlsx">Exportar a Excel</a>
+        <a class="button button-secondary" href="/backoffice/products/export.pdf" target="_blank" rel="noopener noreferrer">Exportar a PDF</a>
+        <span class="status-pill" id="modeStatus">Modo visualización</span>
+        <button class="button button-secondary" id="editModeButton" type="button" disabled>Modo editar</button>
+        <button class="button button-primary" id="saveButton" type="button" disabled>Guardar cambios</button>
+        <button class="button button-secondary" id="deleteButton" type="button" disabled>Eliminar producto</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Catálogo</h2>
+            <p>Productos disponibles en el backoffice</p>
+          </div>
+        </div>
+        <div style="padding: 0 16px;">
+          <input id="searchInput" class="search-box" type="search" placeholder="Buscar por código, nombre o tipo" />
+        </div>
+        <ul class="product-list" id="productList"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Ficha del producto</h2>
+            <p id="panelSubtitle">Selecciona un producto del listado para ver su información.</p>
+          </div>
+        </div>
+        <div class="detail-content" id="detailContent">
+          <div class="empty-state">Selecciona un producto para cargar su ficha.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      products: [],
+      filtered: [],
+      selectedId: null,
+      selectedProduct: null,
+      creating: false,
+      editMode: false,
+      session: {
+        role: 'admin',
+        label: 'Administrador',
+        permissions: {
+          products: { read: true, write: true, delete: true, export: true }
+        }
+      },
+      message: { text: '', type: '' }
+    }
+
+    const refs = {
+      productList: document.getElementById('productList'),
+      detailContent: document.getElementById('detailContent'),
+      panelSubtitle: document.getElementById('panelSubtitle'),
+      roleStatus: document.getElementById('roleStatus'),
+      createButton: document.getElementById('createButton'),
+      editModeButton: document.getElementById('editModeButton'),
+      saveButton: document.getElementById('saveButton'),
+      deleteButton: document.getElementById('deleteButton'),
+      searchInput: document.getElementById('searchInput'),
+      modeStatus: document.getElementById('modeStatus')
+    }
+
+    const currency = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const maxImages = 4
+    const productPermissions = () => state.session.permissions?.products || {}
+    const canWriteProducts = () => Boolean(productPermissions().write)
+    const canDeleteProducts = () => Boolean(productPermissions().delete)
+
+    const imageSrc = value => value || ''
+    const escapeHtml = value => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+    const emptyProduct = () => ({
+      ID: null,
+      code: '',
+      name: '',
+      type: '',
+      image: '',
+      images: [],
+      weight: '',
+      grossPrice: '',
+      netPrice: '',
+      stock: 0
+    })
+
+    const renderThumb = (value, alt) => value
+      ? `<img class="thumb" src="${value}" alt="${alt}" onerror="this.outerHTML='&lt;div class=&quot;thumb thumb-empty&quot;&gt;Sin foto&lt;/div&gt;'" />`
+      : '<div class="thumb thumb-empty">Sin foto</div>'
+
+    const renderCoverPreview = (value, alt) => value
+      ? `<img class="preview-image" id="imagePreview" src="${value}" alt="${alt}" onerror="this.outerHTML='&lt;div class=&quot;preview-empty&quot;&gt;Sin imagen de portada&lt;/div&gt;'" />`
+      : '<div class="preview-empty">Sin imagen de portada</div>'
+
+    const renderGalleryThumb = (value, alt) => value
+      ? `<img class="gallery-thumb" src="${value}" alt="${alt}" onerror="this.outerHTML='&lt;div class=&quot;gallery-empty&quot;&gt;Sin imagen&lt;/div&gt;'" />`
+      : '<div class="gallery-empty">Sin imagen</div>'
+
+    const setMessage = (text = '', type = '') => {
+      state.message = { text, type }
+
+      const message = document.getElementById('formMessage')
+      if (!message) return
+
+      message.className = 'message'
+      message.textContent = text
+      if (text) message.classList.add(type)
+    }
+
+    const syncRoleUi = () => {
+      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.createButton.disabled = !canWriteProducts()
+    }
+
+    const setMode = editing => {
+      state.editMode = canWriteProducts() ? editing : false
+      refs.modeStatus.textContent = state.creating
+        ? 'Creación de producto'
+        : state.editMode ? 'Modo edición activo' : 'Modo visualización'
+      refs.modeStatus.classList.toggle('editing', state.editMode)
+      refs.editModeButton.textContent = canWriteProducts()
+        ? state.editMode ? 'Salir de edición' : 'Modo editar'
+        : 'Solo lectura'
+      refs.saveButton.textContent = state.creating ? 'Crear producto' : 'Guardar cambios'
+      refs.createButton.disabled = !canWriteProducts()
+      refs.editModeButton.disabled = !state.selectedId || state.creating || !canWriteProducts()
+      refs.saveButton.disabled = !state.editMode || (!state.selectedId && !state.creating)
+      refs.deleteButton.disabled = !state.editMode || state.creating || !state.selectedId || !canDeleteProducts()
+      renderDetail()
+    }
+
+    const startCreateProduct = () => {
+      if (!canWriteProducts()) return
+      state.creating = true
+      state.selectedId = null
+      state.selectedProduct = emptyProduct()
+      state.filtered = [...state.products]
+      setMessage('', '')
+      renderList()
+      setMode(true)
+    }
+
+    const renderList = () => {
+      refs.productList.innerHTML = ''
+
+      if (!state.filtered.length) {
+        refs.productList.innerHTML = '<li style="padding: 0 14px 16px; color: #5b738b;">No hay productos que coincidan con la búsqueda.</li>'
+        return
+      }
+
+      for (const product of state.filtered) {
+        const li = document.createElement('li')
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = `product-item${!state.creating && product.ID === state.selectedId ? ' active' : ''}`
+        button.innerHTML = `
+          ${renderThumb(imageSrc(product.image), escapeHtml(product.name))}
+          <div class="product-meta">
+            <strong>${escapeHtml(product.name)}</strong>
+            <span>${escapeHtml(product.code)}</span>
+            <span>${escapeHtml(product.type)} · ${currency.format(Number(product.grossPrice || 0))} € · Stock ${product.stock ?? 0}</span>
+          </div>
+        `
+        button.addEventListener('click', () => loadProduct(product.ID))
+        li.appendChild(button)
+        refs.productList.appendChild(li)
+      }
+    }
+
+    const renderDetail = () => {
+      if (!state.selectedProduct) {
+        refs.detailContent.innerHTML = '<div class="empty-state">Selecciona un producto para cargar su ficha.</div>'
+        refs.panelSubtitle.textContent = 'Selecciona un producto del listado para ver su información.'
+        refs.createButton.disabled = !canWriteProducts()
+        refs.editModeButton.disabled = true
+        refs.saveButton.disabled = true
+        refs.deleteButton.disabled = true
+        return
+      }
+
+      refs.createButton.disabled = !canWriteProducts()
+      refs.editModeButton.disabled = state.creating || !canWriteProducts()
+      refs.saveButton.disabled = !state.editMode || !canWriteProducts()
+      refs.deleteButton.disabled = !state.editMode || state.creating || !canDeleteProducts()
+      refs.panelSubtitle.textContent = state.creating
+        ? 'Alta manual de un nuevo producto'
+        : `${state.selectedProduct.code} · ${state.selectedProduct.name}`
+
+      const images = state.selectedProduct.images || []
+      const remainingSlots = Math.max(0, maxImages - images.length)
+      const galleryMarkup = images.map((image, index) => `
+        <article class="gallery-item${image.isCover ? ' cover' : ''}">
+          ${renderGalleryThumb(imageSrc(image.imageUrl), `Foto ${index + 1} de ${escapeHtml(state.selectedProduct.name)}`)}
+          <div class="gallery-caption">
+            <strong>Foto ${index + 1}</strong>
+            ${image.isCover ? '<span class="cover-badge">Portada</span>' : ''}
+          </div>
+          <div class="gallery-actions">
+            <button class="button button-secondary" type="button" data-action="set-cover" data-image-id="${image.ID}" ${state.editMode && !image.isCover ? '' : 'disabled'}>Portada</button>
+            <button class="button button-secondary" type="button" data-action="delete-image" data-image-id="${image.ID}" ${state.editMode ? '' : 'disabled'}>Eliminar</button>
+          </div>
+        </article>
+      `).join('')
+
+      const emptySlotsMarkup = Array.from({ length: remainingSlots }, (_, index) => `
+        <div class="gallery-empty">Hueco libre ${images.length + index + 1} de ${maxImages}</div>
+      `).join('')
+
+      refs.detailContent.innerHTML = `
+        <form id="productForm">
+          <div class="detail-grid">
+            <div class="image-card">
+              ${renderCoverPreview(imageSrc(state.selectedProduct.image), escapeHtml(state.selectedProduct.name))}
+              <div class="cover-meta">
+                <div>
+                  <strong>Imagen de portada</strong><br />
+                  <span>${images.length ? `Mostrando ${images.length} de ${maxImages} fotos` : 'Todavía no hay fotos cargadas'}</span>
+                </div>
+                ${state.selectedProduct.image ? '<span class="cover-badge">Portada activa</span>' : ''}
+              </div>
+              <div class="upload-wrap">
+                <input id="imageInput" type="file" accept=".png,.jpg,.jpeg" multiple ${state.editMode && !state.creating && remainingSlots > 0 ? '' : 'disabled'} />
+                <button class="button button-secondary" id="uploadButton" type="button" ${state.editMode && !state.creating && remainingSlots > 0 ? '' : 'disabled'}>Subir fotos</button>
+                <p class="upload-hint">${state.creating
+                  ? 'Crea primero el producto y después podrás subir hasta 4 fotos.'
+                  : remainingSlots > 0
+                    ? `Formatos permitidos: PNG, JPG o JPEG. Puedes añadir ${remainingSlots} foto${remainingSlots === 1 ? '' : 's'} más.`
+                    : 'Ya has alcanzado el máximo de 4 fotos. Elimina una si quieres subir otra.'}</p>
+              </div>
+              <div class="gallery-wrap">
+                <div class="gallery-header">
+                  <strong>Galería del producto</strong>
+                  <span>Selecciona cualquier imagen como portada.</span>
+                </div>
+                <div class="gallery-grid">
+                  ${galleryMarkup || ''}
+                  ${emptySlotsMarkup}
+                </div>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label for="code">Código</label><input id="code" name="code" value="${escapeHtml(state.selectedProduct.code || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="name">Nombre</label><input id="name" name="name" value="${escapeHtml(state.selectedProduct.name || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="type">Tipo</label><input id="type" name="type" value="${escapeHtml(state.selectedProduct.type || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="stock">Stock</label><input id="stock" name="stock" type="number" step="1" min="0" value="${state.selectedProduct.stock ?? 0}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="weight">Peso</label><input id="weight" name="weight" type="number" step="0.01" min="0" value="${state.selectedProduct.weight ?? ''}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="grossPrice">Precio bruto</label><input id="grossPrice" name="grossPrice" type="number" step="0.01" min="0" value="${state.selectedProduct.grossPrice ?? ''}" ${state.editMode ? '' : 'disabled'} /></div>
+              <div class="field"><label for="netPrice">Precio neto</label><input id="netPrice" name="netPrice" type="number" step="0.01" min="0" value="${state.selectedProduct.netPrice ?? ''}" ${state.editMode ? '' : 'disabled'} /></div>
+            </div>
+          </div>
+          <div id="formMessage" class="message${state.message.text ? ` ${state.message.type}` : ''}">${state.message.text || ''}</div>
+        </form>
+      `
+
+      document.getElementById('uploadButton')?.addEventListener('click', async () => {
+        try {
+          await uploadImages()
+        } catch (error) {
+          setMessage(error.message, 'error')
+        }
+      })
+      document.querySelectorAll('[data-action="set-cover"]').forEach(button => {
+        button.addEventListener('click', async () => {
+          try {
+            await setCoverImage(button.dataset.imageId)
+          } catch (error) {
+            setMessage(error.message, 'error')
+          }
+        })
+      })
+      document.querySelectorAll('[data-action="delete-image"]').forEach(button => {
+        button.addEventListener('click', async () => {
+          try {
+            await deleteImage(button.dataset.imageId)
+          } catch (error) {
+            setMessage(error.message, 'error')
+          }
+        })
+      })
+    }
+
+    const loadProducts = async () => {
+      const response = await fetch('/backoffice/products')
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo de productos.')
+      state.products = await response.json()
+      state.filtered = [...state.products]
+      renderList()
+    }
+
+    const loadSession = async () => {
+      const response = await fetch('/backoffice/session')
+      if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
+      state.session = await response.json()
+      syncRoleUi()
+    }
+
+    const loadProduct = async id => {
+      const keepEditMode = state.editMode && !state.creating && canWriteProducts()
+      const response = await fetch(`/backoffice/products/${id}`)
+      if (!response.ok) throw new Error('No se pudo cargar el producto seleccionado.')
+      state.creating = false
+      state.selectedProduct = await response.json()
+      state.selectedId = id
+      setMessage('', '')
+      setMode(keepEditMode)
+      renderList()
+    }
+
+    const saveProduct = async () => {
+      if (!canWriteProducts() || !state.editMode || (!state.selectedId && !state.creating)) return
+      const form = document.getElementById('productForm')
+      const payload = Object.fromEntries(new FormData(form).entries())
+      const wasCreating = state.creating
+
+      const response = await fetch(state.creating ? '/backoffice/products' : `/backoffice/products/${state.selectedId}`, {
+        method: state.creating ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo guardar el producto.')
+
+      state.creating = false
+      state.selectedProduct = result
+      state.selectedId = result.ID
+      await refreshListPreservingSelection()
+      setMessage(wasCreating ? 'Producto creado correctamente.' : 'Producto guardado correctamente.', 'success')
+      setMode(false)
+      renderDetail()
+    }
+
+    const uploadImages = async () => {
+      if (!canWriteProducts() || !state.editMode || !state.selectedId) return
+      const input = document.getElementById('imageInput')
+      if (!input.files.length) {
+        setMessage('Selecciona al menos una imagen antes de subirla.', 'error')
+        return
+      }
+
+      const currentImages = state.selectedProduct?.images || []
+      if (currentImages.length + input.files.length > maxImages) {
+        setMessage(`Solo puedes tener ${maxImages} fotos por producto.`, 'error')
+        return
+      }
+
+      const formData = new FormData()
+      for (const file of input.files) {
+        formData.append('images', file)
+      }
+
+      const response = await fetch(`/backoffice/products/${state.selectedId}/images`, {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo subir la imagen.')
+
+      state.selectedProduct = result
+      await refreshListPreservingSelection()
+      setMessage(input.files.length === 1 ? 'Imagen añadida correctamente.' : 'Imágenes añadidas correctamente.', 'success')
+      renderDetail()
+    }
+
+    const setCoverImage = async imageId => {
+      if (!canWriteProducts() || !state.editMode || !state.selectedId || !imageId) return
+
+      const response = await fetch(`/backoffice/products/${state.selectedId}/images/${imageId}/cover`, {
+        method: 'POST'
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo cambiar la portada.')
+
+      state.selectedProduct = result
+      await refreshListPreservingSelection()
+      setMessage('Portada actualizada correctamente.', 'success')
+      renderDetail()
+    }
+
+    const deleteImage = async imageId => {
+      if (!canWriteProducts() || !state.editMode || !state.selectedId || !imageId) return
+
+      const confirmed = window.confirm('¿Quieres eliminar esta foto del producto?')
+      if (!confirmed) return
+
+      const response = await fetch(`/backoffice/products/${state.selectedId}/images/${imageId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo eliminar la imagen.')
+
+      state.selectedProduct = result
+      await refreshListPreservingSelection()
+      setMessage('Foto eliminada correctamente.', 'success')
+      renderDetail()
+    }
+
+    const refreshListPreservingSelection = async () => {
+      await loadProducts()
+      if (!state.selectedId) return
+      const selected = state.products.find(product => product.ID === state.selectedId)
+      if (selected) renderList()
+    }
+
+    const deleteProduct = async () => {
+      if (!canDeleteProducts() || !state.editMode || state.creating || !state.selectedId) return
+
+      const confirmed = window.confirm(`¿Quieres eliminar el producto "${state.selectedProduct.name}"?`)
+      if (!confirmed) return
+
+      const response = await fetch(`/backoffice/products/${state.selectedId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo eliminar el producto.')
+
+      state.selectedId = null
+      state.selectedProduct = null
+      state.creating = false
+      state.editMode = false
+      setMessage('', '')
+      await loadProducts()
+
+      if (state.products.length) {
+        await loadProduct(state.products[0].ID)
+        setMessage('Producto eliminado correctamente. Se ha cargado otro producto disponible.', 'success')
+        return
+      }
+
+      setMode(false)
+      refs.detailContent.innerHTML = '<div class="empty-state">Producto eliminado correctamente. No quedan productos en el catálogo. Puedes crear uno nuevo cuando quieras.</div>'
+      refs.panelSubtitle.textContent = 'No hay productos disponibles en este momento.'
+    }
+
+    refs.searchInput.addEventListener('input', event => {
+      const term = event.target.value.trim().toLowerCase()
+      state.filtered = state.products.filter(product => {
+        const haystack = [product.code, product.name, product.type].join(' ').toLowerCase()
+        return haystack.includes(term)
+      })
+      renderList()
+    })
+
+    refs.editModeButton.addEventListener('click', () => {
+      if (!state.selectedId) return
+      setMessage('', '')
+      setMode(!state.editMode)
+    })
+
+    refs.createButton.addEventListener('click', () => {
+      startCreateProduct()
+    })
+
+    refs.saveButton.addEventListener('click', async () => {
+      try {
+        await saveProduct()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    refs.deleteButton.addEventListener('click', async () => {
+      try {
+        await deleteProduct()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    ;(async () => {
+      try {
+        await Promise.all([loadSession(), loadProducts()])
+      } catch (error) {
+        refs.detailContent.innerHTML = `<div class="empty-state">${error.message}</div>`
+      }
+    })()
+  </script>
+</body>
+</html>

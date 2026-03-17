@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clientes · BerlingerHaus Backoffice</title>
+  <style>
+    :root {
+      --sap-bg: #f5f6f7;
+      --sap-surface: #ffffff;
+      --sap-border: #d5dadd;
+      --sap-primary: #0a6ed1;
+      --sap-primary-hover: #085caf;
+      --sap-secondary: #eef4fb;
+      --sap-text: #1d2d3e;
+      --sap-muted: #5b738b;
+      --sap-success: #107e3e;
+      --sap-warning: #e76500;
+      --sap-danger: #bb0000;
+      --sap-shadow: 0 0.5rem 1.4rem rgba(27, 54, 81, 0.1);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "72", "Segoe UI", Arial, sans-serif;
+      color: var(--sap-text);
+      background: linear-gradient(180deg, #eef4fb 0%, #f6f7f8 100%);
+      min-height: 100vh;
+    }
+
+    .layout { max-width: 1400px; margin: 0 auto; padding: 28px 20px 36px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .title-block h1 { margin: 0 0 6px; font-size: 2rem; }
+    .title-block p { margin: 0; color: var(--sap-muted); }
+    .toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .button {
+      border: none; border-radius: 12px; padding: 12px 18px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+      line-height: 1.2; transition: 0.18s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 46px;
+    }
+    .button-primary { background: var(--sap-primary); color: #fff; }
+    .button-primary:hover { background: var(--sap-primary-hover); }
+    .button-secondary { background: var(--sap-secondary); color: var(--sap-primary); border: 1px solid #c0d8f3; }
+    .button-secondary:hover { background: #dfeefe; }
+    .button-danger { color: var(--sap-danger); border-color: #efc2c2; background: #fff5f5; }
+    .button-danger:hover { background: #ffe8e8; }
+    .button[disabled] { opacity: 0.55; cursor: not-allowed; }
+    .status-pill {
+      border-radius: 999px; padding: 10px 14px; font-weight: 700; font-size: 0.92rem; background: #edf2f7; color: var(--sap-muted);
+    }
+    .status-pill.editing { background: rgba(16, 126, 62, 0.12); color: var(--sap-success); }
+    .grid { display: grid; grid-template-columns: 420px 1fr; gap: 22px; }
+    .panel { background: var(--sap-surface); border: 1px solid var(--sap-border); border-radius: var(--radius); box-shadow: var(--sap-shadow); }
+    .panel-header {
+      padding: 18px 20px; border-bottom: 1px solid #e8ecef; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .panel-header h2 { margin: 0; font-size: 1.1rem; }
+    .panel-header p { margin: 4px 0 0; color: var(--sap-muted); font-size: 0.92rem; }
+    .search-box {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--sap-border); font: inherit; margin: 16px 0;
+    }
+    .client-list { list-style: none; margin: 0; padding: 0 12px 14px; max-height: 760px; overflow: auto; }
+    .client-item {
+      display: block; width: 100%; border: 1px solid transparent; background: transparent; padding: 14px; border-radius: 16px;
+      cursor: pointer; text-align: left; transition: 0.18s ease; margin-bottom: 10px;
+    }
+    .client-item:hover, .client-item.active { border-color: #b7d3f2; background: #f5faff; }
+    .client-item strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+    .client-item span { display: block; color: var(--sap-muted); font-size: 0.93rem; line-height: 1.45; }
+    .detail-content { padding: 22px; }
+    .empty-state {
+      min-height: 560px; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--sap-muted); padding: 32px;
+    }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 18px; }
+    .field { display: grid; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-weight: 700; font-size: 0.94rem; }
+    .field input {
+      width: 100%; border-radius: 12px; border: 1px solid var(--sap-border); padding: 12px 14px; font: inherit; background: #fff;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .field input:focus { outline: none; border-color: #8cb8e8; box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.12); }
+    .field input:disabled { background: #f5f7f9; color: #60758b; cursor: default; }
+    .message { margin-top: 18px; padding: 14px 16px; border-radius: 14px; font-weight: 600; display: none; }
+    .message.success { display: block; background: rgba(16, 126, 62, 0.1); color: var(--sap-success); }
+    .message.error { display: block; background: rgba(231, 101, 0, 0.12); color: var(--sap-warning); }
+
+    .history-section {
+      margin-top: 22px;
+      border: 1px solid #e3e8ec;
+      border-radius: 18px;
+      background: #fbfcfd;
+      padding: 18px;
+    }
+
+    .history-section h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .helper-text {
+      margin: 0;
+      color: var(--sap-muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .history-card {
+      border: 1px solid #deebf7;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .campaign-link-card {
+      display: block;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .campaign-link-card:hover,
+    .campaign-link-card:focus-visible {
+      transform: translateY(-2px);
+      border-color: #b7d3f2;
+      box-shadow: 0 0.5rem 1rem rgba(27, 54, 81, 0.08);
+      outline: none;
+    }
+
+    .history-card strong {
+      display: block;
+      font-size: 0.98rem;
+      margin-bottom: 4px;
+    }
+
+    .history-card span,
+    .history-card p {
+      margin: 0;
+      color: var(--sap-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .active-section {
+      margin-top: 22px;
+      border: 1px solid #d8e8fb;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+      padding: 18px;
+    }
+
+    .active-section h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      color: var(--sap-primary);
+    }
+
+    .active-card {
+      border: 1px solid #cfe1f6;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .active-card strong {
+      display: block;
+      font-size: 0.98rem;
+      margin-bottom: 4px;
+    }
+
+    .active-card span,
+    .active-card p {
+      margin: 0;
+      color: var(--sap-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .upcoming-section {
+      margin-top: 22px;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      background: #f9fbfd;
+      padding: 18px;
+    }
+
+    .upcoming-section h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <div class="topbar">
+      <div class="title-block">
+        <h1>Gestión de clientes</h1>
+        <p>Consulta clientes y gestiona altas, cambios y bajas desde el backoffice.</p>
+      </div>
+      <div class="toolbar">
+        <a class="button button-secondary" href="/">Volver al inicio</a>
+        <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="createButton" type="button">Crear cliente</button>
+        <span class="status-pill" id="modeStatus">Modo visualización</span>
+        <button class="button button-secondary" id="editModeButton" type="button" disabled>Editar cliente</button>
+        <button class="button button-primary" id="saveButton" type="button" disabled>Guardar cambios</button>
+        <button class="button button-danger" id="deleteButton" type="button" disabled>Eliminar cliente</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Clientes</h2>
+            <p>Base de clientes del backoffice</p>
+          </div>
+        </div>
+        <div style="padding: 0 16px;">
+          <input id="searchInput" class="search-box" type="search" placeholder="Buscar por código, nombre, contacto o ciudad" />
+        </div>
+        <ul class="client-list" id="clientList"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Ficha del cliente</h2>
+            <p id="panelSubtitle">Selecciona un cliente del listado para ver su información.</p>
+          </div>
+        </div>
+        <div class="detail-content" id="detailContent">
+          <div class="empty-state">Selecciona un cliente para cargar su ficha.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      clients: [],
+      filtered: [],
+      selectedId: null,
+      selectedClient: null,
+      creating: false,
+      editMode: false,
+      session: {
+        role: 'admin',
+        label: 'Administrador',
+        permissions: {
+          clients: { read: true, write: true, delete: true }
+        }
+      },
+      message: { text: '', type: '' }
+    }
+
+    const refs = {
+      clientList: document.getElementById('clientList'),
+      detailContent: document.getElementById('detailContent'),
+      panelSubtitle: document.getElementById('panelSubtitle'),
+      roleStatus: document.getElementById('roleStatus'),
+      createButton: document.getElementById('createButton'),
+      editModeButton: document.getElementById('editModeButton'),
+      saveButton: document.getElementById('saveButton'),
+      deleteButton: document.getElementById('deleteButton'),
+      searchInput: document.getElementById('searchInput'),
+      modeStatus: document.getElementById('modeStatus')
+    }
+
+    const escapeHtml = value => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+    const clientPermissions = () => state.session.permissions?.clients || {}
+    const canWriteClients = () => Boolean(clientPermissions().write)
+    const canDeleteClients = () => Boolean(clientPermissions().delete)
+
+    const emptyClient = () => ({
+      ID: null,
+      code: '',
+      name: '',
+      contactName: '',
+      email: '',
+      phone: '',
+      city: '',
+      country: '',
+      activeCampaigns: [],
+      upcomingCampaigns: [],
+      campaignHistory: []
+    })
+
+    const formatDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('es-ES') : 'Sin fecha'
+    const campaignLink = campaignId => `/campaigns/?campaignId=${encodeURIComponent(campaignId)}`
+
+    const setMessage = (text = '', type = '') => {
+      state.message = { text, type }
+      const message = document.getElementById('formMessage')
+      if (!message) return
+      message.className = 'message'
+      message.textContent = text
+      if (text) message.classList.add(type)
+    }
+
+    const syncRoleUi = () => {
+      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.createButton.disabled = !canWriteClients()
+    }
+
+    const setMode = editing => {
+      state.editMode = canWriteClients() ? editing : false
+      refs.modeStatus.textContent = state.creating ? 'Creación de cliente' : state.editMode ? 'Modo edición activo' : 'Modo visualización'
+      refs.modeStatus.classList.toggle('editing', state.editMode)
+      refs.editModeButton.textContent = canWriteClients()
+        ? state.editMode ? 'Salir de edición' : 'Editar cliente'
+        : 'Solo lectura'
+      refs.saveButton.textContent = state.creating ? 'Crear cliente' : 'Guardar cambios'
+      refs.createButton.disabled = !canWriteClients()
+      refs.editModeButton.disabled = !state.selectedId || state.creating || !canWriteClients()
+      refs.saveButton.disabled = !state.editMode || (!state.selectedId && !state.creating)
+      refs.deleteButton.disabled = !state.editMode || state.creating || !state.selectedId || !canDeleteClients()
+      renderDetail()
+    }
+
+    const startCreateClient = () => {
+      if (!canWriteClients()) return
+      state.creating = true
+      state.selectedId = null
+      state.selectedClient = emptyClient()
+      setMessage('', '')
+      renderList()
+      setMode(true)
+    }
+
+    const renderList = () => {
+      refs.clientList.innerHTML = ''
+      if (!state.filtered.length) {
+        refs.clientList.innerHTML = '<li style="padding: 0 14px 16px; color: #5b738b;">No hay clientes que coincidan con la búsqueda.</li>'
+        return
+      }
+
+      for (const client of state.filtered) {
+        const li = document.createElement('li')
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = `client-item${!state.creating && client.ID === state.selectedId ? ' active' : ''}`
+        button.innerHTML = `
+          <strong>${escapeHtml(client.name)}</strong>
+          <span>${escapeHtml(client.code)} · ${escapeHtml(client.city || 'Sin ciudad')} · ${escapeHtml(client.country || 'Sin país')}</span>
+          <span>${escapeHtml(client.contactName || 'Sin contacto')} · ${escapeHtml(client.email || 'Sin email')}</span>
+        `
+        button.addEventListener('click', () => loadClient(client.ID))
+        li.appendChild(button)
+        refs.clientList.appendChild(li)
+      }
+    }
+
+    const renderDetail = () => {
+      if (!state.selectedClient) {
+        refs.detailContent.innerHTML = '<div class="empty-state">Selecciona un cliente para cargar su ficha.</div>'
+        refs.panelSubtitle.textContent = 'Selecciona un cliente del listado para ver su información.'
+        refs.createButton.disabled = !canWriteClients()
+        refs.editModeButton.disabled = true
+        refs.saveButton.disabled = true
+        refs.deleteButton.disabled = true
+        return
+      }
+
+      refs.createButton.disabled = !canWriteClients()
+      refs.editModeButton.disabled = state.creating || !canWriteClients()
+      refs.saveButton.disabled = !state.editMode || !canWriteClients()
+      refs.deleteButton.disabled = !state.editMode || state.creating || !canDeleteClients()
+      refs.panelSubtitle.textContent = state.creating
+        ? 'Alta manual de un nuevo cliente'
+        : `${state.selectedClient.code} · ${state.selectedClient.name}`
+
+      const activeCampaigns = state.selectedClient.activeCampaigns || []
+      const upcomingCampaigns = state.selectedClient.upcomingCampaigns || []
+      const history = state.selectedClient.campaignHistory || []
+      const activeMarkup = state.creating
+        ? '<p class="helper-text">La campaña activa aparecerá cuando este cliente tenga una campaña vigente asociada.</p>'
+        : activeCampaigns.length
+          ? activeCampaigns.map(campaign => `
+              <a class="active-card campaign-link-card" href="${campaignLink(campaign.ID)}">
+                <strong>${escapeHtml(campaign.name)}</strong>
+                <span>${escapeHtml(formatDate(campaign.startDate))} · ${escapeHtml(formatDate(campaign.endDate))}</span>
+                <p>${escapeHtml(campaign.description || 'Sin descripción comercial.')}</p>
+              </a>
+            `).join('')
+          : '<p class="helper-text">Este cliente no tiene ninguna campaña activa en este momento.</p>'
+      const upcomingMarkup = state.creating
+        ? '<p class="helper-text">Las próximas campañas aparecerán cuando este cliente tenga campañas futuras asociadas.</p>'
+        : upcomingCampaigns.length
+          ? upcomingCampaigns.map(campaign => `
+              <a class="history-card campaign-link-card" href="${campaignLink(campaign.ID)}">
+                <strong>${escapeHtml(campaign.name)}</strong>
+                <span>${escapeHtml(formatDate(campaign.startDate))} · ${escapeHtml(formatDate(campaign.endDate))}</span>
+                <p>${escapeHtml(campaign.description || 'Sin descripción comercial.')}</p>
+              </a>
+            `).join('')
+          : '<p class="helper-text">Este cliente no tiene próximas campañas asociadas.</p>'
+      const historyMarkup = state.creating
+        ? '<p class="helper-text">El historial aparecerá cuando el cliente tenga campañas finalizadas asociadas.</p>'
+        : history.length
+          ? `
+            <div class="history-list">
+              ${history.map(campaign => `
+                <a class="history-card campaign-link-card" href="${campaignLink(campaign.ID)}">
+                  <strong>${escapeHtml(campaign.name)}</strong>
+                  <span>${escapeHtml(formatDate(campaign.startDate))} · ${escapeHtml(formatDate(campaign.endDate))}</span>
+                  <p>${escapeHtml(campaign.description || 'Sin descripción comercial.')}</p>
+                </a>
+              `).join('')}
+            </div>
+          `
+          : '<p class="helper-text">Este cliente todavía no tiene campañas finalizadas.</p>'
+
+      refs.detailContent.innerHTML = `
+        <form id="clientForm">
+          <div class="form-grid">
+            <div class="field"><label for="code">Código</label><input id="code" name="code" value="${escapeHtml(state.selectedClient.code || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="name">Nombre comercial</label><input id="name" name="name" value="${escapeHtml(state.selectedClient.name || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="contactName">Persona de contacto</label><input id="contactName" name="contactName" value="${escapeHtml(state.selectedClient.contactName || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" value="${escapeHtml(state.selectedClient.email || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="phone">Teléfono</label><input id="phone" name="phone" value="${escapeHtml(state.selectedClient.phone || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="city">Ciudad</label><input id="city" name="city" value="${escapeHtml(state.selectedClient.city || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field full"><label for="country">País</label><input id="country" name="country" value="${escapeHtml(state.selectedClient.country || '')}" ${state.editMode ? '' : 'disabled'} /></div>
+          </div>
+          <section class="active-section">
+            <h3>Campaña activa</h3>
+            <p class="helper-text">Aquí se muestra cualquier campaña vigente asociada a este cliente.</p>
+            ${activeMarkup}
+          </section>
+          <section class="upcoming-section">
+            <h3>Próximas campañas</h3>
+            <p class="helper-text">Aquí se muestran las campañas futuras ya planificadas para este cliente.</p>
+            ${upcomingMarkup}
+          </section>
+          <section class="history-section">
+            <h3>Historial de campañas</h3>
+            <p class="helper-text">Solo se muestran campañas de este cliente que ya están finalizadas.</p>
+            ${historyMarkup}
+          </section>
+          <div id="formMessage" class="message${state.message.text ? ` ${state.message.type}` : ''}">${state.message.text || ''}</div>
+        </form>
+      `
+    }
+
+    const loadClients = async () => {
+      const response = await fetch('/backoffice/clients')
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo de clientes.')
+      state.clients = await response.json()
+      state.filtered = [...state.clients]
+      renderList()
+    }
+
+    const loadSession = async () => {
+      const response = await fetch('/backoffice/session')
+      if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
+      state.session = await response.json()
+      syncRoleUi()
+    }
+
+    const loadClient = async id => {
+      const keepEditMode = state.editMode && !state.creating && canWriteClients()
+      const response = await fetch(`/backoffice/clients/${id}`)
+      if (!response.ok) throw new Error('No se pudo cargar el cliente seleccionado.')
+      state.creating = false
+      state.selectedClient = await response.json()
+      state.selectedId = id
+      setMessage('', '')
+      setMode(keepEditMode)
+      renderList()
+    }
+
+    const refreshListPreservingSelection = async () => {
+      await loadClients()
+      if (!state.selectedId) return
+      renderList()
+    }
+
+    const saveClient = async () => {
+      if (!canWriteClients() || !state.editMode || (!state.selectedId && !state.creating)) return
+      const form = document.getElementById('clientForm')
+      const payload = Object.fromEntries(new FormData(form).entries())
+      const wasCreating = state.creating
+
+      const response = await fetch(state.creating ? '/backoffice/clients' : `/backoffice/clients/${state.selectedId}`, {
+        method: state.creating ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo guardar el cliente.')
+
+      state.creating = false
+      state.selectedClient = result
+      state.selectedId = result.ID
+      await refreshListPreservingSelection()
+      setMessage(wasCreating ? 'Cliente creado correctamente.' : 'Cliente guardado correctamente.', 'success')
+      setMode(false)
+      renderDetail()
+    }
+
+    const deleteClient = async () => {
+      if (!canDeleteClients() || !state.editMode || state.creating || !state.selectedId) return
+      const confirmed = window.confirm(`¿Quieres eliminar el cliente "${state.selectedClient.name}"?`)
+      if (!confirmed) return
+
+      const response = await fetch(`/backoffice/clients/${state.selectedId}`, { method: 'DELETE' })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo eliminar el cliente.')
+
+      state.selectedId = null
+      state.selectedClient = null
+      state.creating = false
+      setMessage('', '')
+      await loadClients()
+      setMode(false)
+      refs.detailContent.innerHTML = '<div class="empty-state">Cliente eliminado correctamente. Selecciona otro cliente o crea uno nuevo.</div>'
+      refs.panelSubtitle.textContent = 'Selecciona un cliente del listado para ver su información.'
+    }
+
+    refs.searchInput.addEventListener('input', event => {
+      const term = event.target.value.trim().toLowerCase()
+      state.filtered = state.clients.filter(client => {
+        const haystack = [client.code, client.name, client.contactName, client.city, client.country, client.email].join(' ').toLowerCase()
+        return haystack.includes(term)
+      })
+      renderList()
+    })
+
+    refs.editModeButton.addEventListener('click', () => {
+      if (!state.selectedId || !canWriteClients()) return
+      setMessage('', '')
+      setMode(!state.editMode)
+    })
+
+    refs.createButton.addEventListener('click', startCreateClient)
+
+    refs.saveButton.addEventListener('click', async () => {
+      try {
+        await saveClient()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    refs.deleteButton.addEventListener('click', async () => {
+      try {
+        await deleteClient()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    ;(async () => {
+      try {
+        await Promise.all([loadSession(), loadClients()])
+      } catch (error) {
+        refs.detailContent.innerHTML = `<div class="empty-state">${error.message}</div>`
+      }
+    })()
+  </script>
+</body>
+</html>

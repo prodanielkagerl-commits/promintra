@@ -1,0 +1,22 @@
+databases:
+  - name: berlingerhaus-db
+    plan: free
+    databaseName: berlingerhaus
+    user: berlingerhaus
+
+services:
+  - type: web
+    name: berlingerhaus-backoffice
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install
+    startCommand: npm run start:render
+    healthCheckPath: /backoffice/session
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: berlingerhaus-db
+          property: connectionString

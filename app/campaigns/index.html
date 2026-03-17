@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campañas · BerlingerHaus Backoffice</title>
+  <style>
+    :root {
+      --sap-bg: #f5f6f7;
+      --sap-surface: #ffffff;
+      --sap-border: #d5dadd;
+      --sap-primary: #0a6ed1;
+      --sap-primary-hover: #085caf;
+      --sap-secondary: #eef4fb;
+      --sap-text: #1d2d3e;
+      --sap-muted: #5b738b;
+      --sap-success: #107e3e;
+      --sap-warning: #e76500;
+      --sap-danger: #bb0000;
+      --sap-shadow: 0 0.5rem 1.4rem rgba(27, 54, 81, 0.1);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "72", "Segoe UI", Arial, sans-serif;
+      color: var(--sap-text);
+      background: linear-gradient(180deg, #eef4fb 0%, #f6f7f8 100%);
+      min-height: 100vh;
+    }
+
+    .layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 20px 36px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .title-block h1 { margin: 0 0 6px; font-size: 2rem; }
+    .title-block p { margin: 0; color: var(--sap-muted); }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: 0.18s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+    }
+
+    .button-primary { background: var(--sap-primary); color: #fff; }
+    .button-primary:hover { background: var(--sap-primary-hover); }
+
+    .button-secondary {
+      background: var(--sap-secondary);
+      color: var(--sap-primary);
+      border: 1px solid #c0d8f3;
+    }
+
+    .button-secondary:hover { background: #dfeefe; }
+    .button-danger { color: var(--sap-danger); border-color: #efc2c2; background: #fff5f5; }
+    .button-danger:hover { background: #ffe8e8; }
+
+    .button[disabled] { opacity: 0.55; cursor: not-allowed; }
+
+    .status-pill {
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      background: #edf2f7;
+      color: var(--sap-muted);
+    }
+
+    .status-pill.editing { background: rgba(16, 126, 62, 0.12); color: var(--sap-success); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 22px;
+    }
+
+    .panel {
+      background: var(--sap-surface);
+      border: 1px solid var(--sap-border);
+      border-radius: var(--radius);
+      box-shadow: var(--sap-shadow);
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e8ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-header h2 { margin: 0; font-size: 1.1rem; }
+    .panel-header p { margin: 4px 0 0; color: var(--sap-muted); font-size: 0.92rem; }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--sap-border);
+      font: inherit;
+      margin: 16px 0 10px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      padding-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-chip {
+      border: 1px solid #c7d8ea;
+      background: #f7fbff;
+      color: var(--sap-primary);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toggle-chip.active { background: var(--sap-primary); color: #fff; border-color: var(--sap-primary); }
+
+    .campaign-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 12px 14px;
+      max-height: 760px;
+      overflow: auto;
+    }
+
+    .campaign-item {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 16px;
+      border-radius: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.18s ease;
+      margin-bottom: 10px;
+    }
+
+    .campaign-item:hover,
+    .campaign-item.active {
+      border-color: #b7d3f2;
+      background: #f5faff;
+    }
+
+    .campaign-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .campaign-meta strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+    .campaign-meta span,
+    .campaign-description,
+    .helper-text { color: var(--sap-muted); font-size: 0.93rem; line-height: 1.45; }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.active { background: rgba(16, 126, 62, 0.12); color: var(--sap-success); }
+    .badge.upcoming { background: rgba(10, 110, 209, 0.12); color: var(--sap-primary); }
+    .badge.expired { background: rgba(231, 101, 0, 0.14); color: var(--sap-warning); }
+    .badge.draft { background: #edf2f7; color: var(--sap-muted); }
+
+    .detail-content { padding: 22px; }
+
+    .empty-state {
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--sap-muted);
+      padding: 32px;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      border: 1px solid #e3e8ec;
+      background: #fbfcfd;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .summary-card span { display: block; font-size: 0.88rem; color: var(--sap-muted); margin-bottom: 6px; }
+    .summary-card strong { font-size: 1.15rem; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 18px;
+    }
+
+    .field { display: grid; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-weight: 700; font-size: 0.94rem; }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--sap-border);
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .field textarea { min-height: 130px; resize: vertical; }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: #8cb8e8;
+      box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.12);
+    }
+
+    .field input:disabled,
+    .field select:disabled,
+    .field textarea:disabled {
+      background: #f5f7f9;
+      color: #60758b;
+      cursor: default;
+    }
+
+    .message {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .message.success { display: block; background: rgba(16, 126, 62, 0.1); color: var(--sap-success); }
+    .message.error { display: block; background: rgba(231, 101, 0, 0.12); color: var(--sap-warning); }
+
+    .product-section {
+      margin-top: 20px;
+      border: 1px solid #e3e8ec;
+      border-radius: 18px;
+      background: #fbfcfd;
+      padding: 18px;
+    }
+
+    .product-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .product-section-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .product-count {
+      border-radius: 999px;
+      background: rgba(10, 110, 209, 0.12);
+      color: var(--sap-primary);
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .product-picker {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 12px;
+      max-height: 260px;
+      overflow: auto;
+      align-items: stretch;
+    }
+
+    .product-search {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--sap-border);
+      font: inherit;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+    .product-choice {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid #deebf7;
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 82px;
+      height: 100%;
+    }
+
+    .product-card-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid #d9e3ec;
+      background: #eef3f8;
+      flex: 0 0 56px;
+    }
+
+    .product-card-thumb.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8ca0b3;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px;
+    }
+
+    .product-card-body {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .product-choice input {
+      margin: 0;
+      align-self: center;
+    }
+
+    .product-choice strong,
+    .product-chip strong {
+      display: block;
+      font-size: 0.94rem;
+      margin-bottom: 3px;
+    }
+
+    .product-choice span,
+    .product-chip span {
+      color: var(--sap-muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .product-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .product-chip {
+      border: 1px solid #deebf7;
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      min-width: 220px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-height: 82px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .summary-cards, .form-grid { grid-template-columns: 1fr; }
+      .product-picker { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <div class="topbar">
+      <div class="title-block">
+        <h1>Gestión de campañas</h1>
+        <p>Consulta campañas activas, crea nuevas promociones y edita su ventana comercial desde el backoffice.</p>
+      </div>
+      <div class="toolbar">
+        <a class="button button-secondary" href="/">Volver al inicio</a>
+        <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="createButton" type="button">Crear campaña</button>
+        <button class="button button-secondary" id="exportExcelButton" type="button" disabled>Exportar a Excel</button>
+        <button class="button button-secondary" id="exportPdfButton" type="button" disabled>Exportar a PDF</button>
+        <span class="status-pill" id="modeStatus">Modo visualización</span>
+        <button class="button button-secondary" id="editModeButton" type="button" disabled>Editar campaña</button>
+        <button class="button button-primary" id="saveButton" type="button" disabled>Guardar cambios</button>
+        <button class="button button-danger" id="deleteButton" type="button" disabled>Eliminar campaña</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Campañas</h2>
+            <p>Buscador y filtros de campañas activas, futuras y finalizadas</p>
+          </div>
+        </div>
+        <div style="padding: 0 16px;">
+          <input id="searchInput" class="search-box" type="search" placeholder="Buscar por nombre o descripción" />
+          <div class="filter-row">
+            <button class="toggle-chip active" id="filterAll" type="button">Todas</button>
+            <button class="toggle-chip" id="filterActive" type="button">Activas</button>
+            <button class="toggle-chip" id="filterUpcoming" type="button">Próximas</button>
+            <button class="toggle-chip" id="filterExpired" type="button">Finalizadas</button>
+          </div>
+        </div>
+        <ul class="campaign-list" id="campaignList"></ul>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Ficha de campaña</h2>
+            <p id="panelSubtitle">Selecciona una campaña del listado para ver su información.</p>
+          </div>
+        </div>
+        <div class="detail-content" id="detailContent">
+          <div class="empty-state">Selecciona una campaña para cargar su ficha.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      campaigns: [],
+      clients: [],
+      products: [],
+      filtered: [],
+      selectedId: null,
+      selectedCampaign: null,
+      creating: false,
+      editMode: false,
+      session: {
+        role: 'admin',
+        label: 'Administrador',
+        permissions: {
+          campaigns: { read: true, write: true, delete: true, export: true }
+        }
+      },
+      filter: 'all',
+      productSearch: '',
+      message: { text: '', type: '' }
+    }
+
+    const refs = {
+      campaignList: document.getElementById('campaignList'),
+      detailContent: document.getElementById('detailContent'),
+      panelSubtitle: document.getElementById('panelSubtitle'),
+      roleStatus: document.getElementById('roleStatus'),
+      createButton: document.getElementById('createButton'),
+      exportExcelButton: document.getElementById('exportExcelButton'),
+      exportPdfButton: document.getElementById('exportPdfButton'),
+      editModeButton: document.getElementById('editModeButton'),
+      saveButton: document.getElementById('saveButton'),
+      deleteButton: document.getElementById('deleteButton'),
+      searchInput: document.getElementById('searchInput'),
+      modeStatus: document.getElementById('modeStatus'),
+      filterAll: document.getElementById('filterAll'),
+      filterActive: document.getElementById('filterActive'),
+      filterUpcoming: document.getElementById('filterUpcoming'),
+      filterExpired: document.getElementById('filterExpired')
+    }
+
+    const requestedCampaignId = new URLSearchParams(window.location.search).get('campaignId')
+    const campaignPermissions = () => state.session.permissions?.campaigns || {}
+    const canWriteCampaigns = () => Boolean(campaignPermissions().write)
+    const canDeleteCampaigns = () => Boolean(campaignPermissions().delete)
+
+    const emptyCampaign = () => ({ ID: null, name: '', description: '', startDate: '', endDate: '', clientId: '', client: null, productIds: [] })
+
+    const escapeHtml = value => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+    const renderProductThumb = product => product?.image
+      ? `<img class="product-card-thumb" src="${product.image}" alt="${escapeHtml(product.name)}" />`
+      : '<div class="product-card-thumb empty">Sin foto</div>'
+
+    const today = () => new Date().toISOString().slice(0, 10)
+
+    const campaignState = campaign => {
+      const now = today()
+      if (!campaign.startDate && !campaign.endDate) return { key: 'draft', label: 'Sin fechas' }
+      if (campaign.startDate && campaign.startDate > now) return { key: 'upcoming', label: 'Próxima' }
+      if (campaign.endDate && campaign.endDate < now) return { key: 'expired', label: 'Finalizada' }
+      return { key: 'active', label: 'Activa' }
+    }
+
+    const formatDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('es-ES') : 'Sin fecha'
+
+    const setMessage = (text = '', type = '') => {
+      state.message = { text, type }
+      const message = document.getElementById('formMessage')
+      if (!message) return
+      message.className = 'message'
+      message.textContent = text
+      if (text) message.classList.add(type)
+    }
+
+    const syncRoleUi = () => {
+      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.createButton.disabled = !canWriteCampaigns()
+    }
+
+    const setMode = editing => {
+      state.editMode = canWriteCampaigns() ? editing : false
+      refs.modeStatus.textContent = state.creating ? 'Creación de campaña' : state.editMode ? 'Modo edición activo' : 'Modo visualización'
+      refs.modeStatus.classList.toggle('editing', state.editMode)
+      refs.editModeButton.textContent = canWriteCampaigns()
+        ? state.editMode ? 'Salir de edición' : 'Editar campaña'
+        : 'Solo lectura'
+      refs.saveButton.textContent = state.creating ? 'Crear campaña' : 'Guardar cambios'
+      refs.createButton.disabled = !canWriteCampaigns()
+      refs.editModeButton.disabled = !state.selectedId || state.creating || !canWriteCampaigns()
+      refs.saveButton.disabled = !state.editMode || (!state.selectedId && !state.creating)
+      refs.deleteButton.disabled = !state.editMode || state.creating || !state.selectedId || !canDeleteCampaigns()
+      refs.exportExcelButton.disabled = !state.selectedId || state.creating
+      refs.exportPdfButton.disabled = !state.selectedId || state.creating
+      renderDetail()
+    }
+
+    const startCreateCampaign = () => {
+      if (!canWriteCampaigns()) return
+      state.creating = true
+      state.selectedId = null
+      state.selectedCampaign = emptyCampaign()
+      state.productSearch = ''
+      setMessage('', '')
+      renderList()
+      setMode(true)
+    }
+
+    const applyFilters = () => {
+      const term = refs.searchInput.value.trim().toLowerCase()
+      state.filtered = state.campaigns.filter(campaign => {
+        const status = campaignState(campaign).key
+        const matchesStatus = state.filter === 'all' || state.filter === status
+        const haystack = [campaign.name, campaign.description || '', campaign.client?.name || ''].join(' ').toLowerCase()
+        return matchesStatus && haystack.includes(term)
+      })
+      renderList()
+    }
+
+    const renderList = () => {
+      refs.campaignList.innerHTML = ''
+      if (!state.filtered.length) {
+        refs.campaignList.innerHTML = '<li style="padding: 0 14px 16px; color: #5b738b;">No hay campañas que coincidan con los filtros.</li>'
+        return
+      }
+
+      for (const campaign of state.filtered) {
+        const status = campaignState(campaign)
+        const li = document.createElement('li')
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = `campaign-item${!state.creating && campaign.ID === state.selectedId ? ' active' : ''}`
+        button.innerHTML = `
+          <div class="campaign-head">
+            <div class="campaign-meta">
+              <strong>${campaign.name}</strong>
+              <span>${formatDate(campaign.startDate)} · ${formatDate(campaign.endDate)}</span>
+              <span>${escapeHtml(campaign.client?.name || 'Sin cliente asignado')}</span>
+            </div>
+            <span class="badge ${status.key}">${status.label}</span>
+          </div>
+          <div class="campaign-description">${campaign.description || 'Sin descripción comercial.'}</div>
+        `
+        button.addEventListener('click', () => loadCampaign(campaign.ID))
+        li.appendChild(button)
+        refs.campaignList.appendChild(li)
+      }
+    }
+
+    const renderDetail = () => {
+      if (!state.selectedCampaign) {
+        refs.detailContent.innerHTML = '<div class="empty-state">Selecciona una campaña para cargar su ficha.</div>'
+        refs.panelSubtitle.textContent = 'Selecciona una campaña del listado para ver su información.'
+        refs.createButton.disabled = !canWriteCampaigns()
+        refs.editModeButton.disabled = true
+        refs.saveButton.disabled = true
+        refs.deleteButton.disabled = true
+        refs.exportExcelButton.disabled = true
+        refs.exportPdfButton.disabled = true
+        return
+      }
+
+      refs.createButton.disabled = !canWriteCampaigns()
+      refs.editModeButton.disabled = state.creating || !canWriteCampaigns()
+      refs.saveButton.disabled = !state.editMode || !canWriteCampaigns()
+      refs.deleteButton.disabled = !state.editMode || state.creating || !canDeleteCampaigns()
+      refs.exportExcelButton.disabled = state.creating
+      refs.exportPdfButton.disabled = state.creating
+
+      const status = campaignState(state.selectedCampaign)
+      const selectedClientId = state.selectedCampaign.clientId || ''
+      const selectedClient = state.clients.find(client => client.ID === selectedClientId) || state.selectedCampaign.client || null
+      const selectedProductIds = state.selectedCampaign.productIds || []
+      const selectedProducts = state.products.filter(product => selectedProductIds.includes(product.ID))
+      const filteredProducts = state.products.filter(product => {
+        const haystack = [product.name, product.code, product.type].join(' ').toLowerCase()
+        return haystack.includes(state.productSearch.trim().toLowerCase())
+      })
+      const clientOptions = [
+        '<option value="">Sin cliente asignado</option>',
+        ...state.clients.map(client => `<option value="${client.ID}" ${client.ID === selectedClientId ? 'selected' : ''}>${escapeHtml(client.name)} · ${escapeHtml(client.code)}</option>`)
+      ].join('')
+      const productMarkup = state.editMode
+        ? `
+          <input id="productSearch" class="product-search" type="search" placeholder="Buscar producto por nombre, código o tipo" value="${state.productSearch}" />
+          <div class="product-picker">
+            ${filteredProducts.length
+              ? filteredProducts.map(product => `
+                <label class="product-choice">
+                  <input type="checkbox" name="productIds" value="${product.ID}" ${selectedProductIds.includes(product.ID) ? 'checked' : ''} />
+                  ${renderProductThumb(product)}
+                  <div class="product-card-body">
+                    <strong>${escapeHtml(product.name)}</strong>
+                    <span>${escapeHtml(product.code)} · ${escapeHtml(product.type)} · Stock ${product.stock ?? 0}</span>
+                  </div>
+                </label>
+              `).join('')
+              : '<p class="helper-text">No hay productos que coincidan con la búsqueda.</p>'}
+          </div>
+        `
+        : selectedProducts.length
+          ? `
+            <div class="product-chip-list">
+              ${selectedProducts.map(product => `
+                <div class="product-chip">
+                  ${renderProductThumb(product)}
+                  <div class="product-card-body">
+                    <strong>${escapeHtml(product.name)}</strong>
+                    <span>${escapeHtml(product.code)} · ${escapeHtml(product.type)}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `
+          : '<p class="helper-text">Esta campaña todavía no tiene productos asignados.</p>'
+
+      refs.panelSubtitle.textContent = state.creating
+        ? 'Alta manual de una nueva campaña'
+        : `${state.selectedCampaign.name} · ${status.label}`
+
+      refs.detailContent.innerHTML = `
+        <form id="campaignForm">
+          <div class="summary-cards">
+            <div class="summary-card"><span>Estado</span><strong>${status.label}</strong></div>
+            <div class="summary-card"><span>Inicio</span><strong>${formatDate(state.selectedCampaign.startDate)}</strong></div>
+            <div class="summary-card"><span>Fin</span><strong>${formatDate(state.selectedCampaign.endDate)}</strong></div>
+          </div>
+          <div class="form-grid">
+            <div class="field full"><label for="name">Nombre de campaña</label><input id="name" name="name" value="${state.selectedCampaign.name || ''}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field full"><label for="clientId">Cliente asociado</label><select id="clientId" name="clientId" ${state.editMode && state.clients.length ? '' : 'disabled'}>${clientOptions}</select></div>
+            <div class="field"><label for="startDate">Fecha de inicio</label><input id="startDate" name="startDate" type="date" value="${state.selectedCampaign.startDate || ''}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field"><label for="endDate">Fecha de fin</label><input id="endDate" name="endDate" type="date" value="${state.selectedCampaign.endDate || ''}" ${state.editMode ? '' : 'disabled'} /></div>
+            <div class="field full"><label for="description">Descripción comercial</label><textarea id="description" name="description" ${state.editMode ? '' : 'disabled'}>${state.selectedCampaign.description || ''}</textarea></div>
+          </div>
+          <p class="helper-text" style="margin: 14px 0 0;">${state.clients.length ? `Cliente actual: ${escapeHtml(selectedClient?.name || 'Sin cliente asignado')}` : 'Todavía no hay clientes creados. Primero crea un cliente desde la sección Clientes.'}</p>
+          <section class="product-section">
+            <div class="product-section-header">
+              <div>
+                <h3>Productos de la campaña</h3>
+                <p class="helper-text">Selecciona productos ya existentes en la base de datos para incluirlos en esta campaña.</p>
+              </div>
+              <span class="product-count">${selectedProducts.length} seleccionados</span>
+            </div>
+            ${productMarkup}
+          </section>
+          <div id="formMessage" class="message${state.message.text ? ` ${state.message.type}` : ''}">${state.message.text || ''}</div>
+        </form>
+      `
+
+      const productSearchInput = document.getElementById('productSearch')
+      const applyProductSearch = value => {
+        const form = document.getElementById('campaignForm')
+        if (form) {
+          state.selectedCampaign.productIds = new FormData(form).getAll('productIds')
+        }
+        state.productSearch = value
+        renderDetail()
+      }
+
+      productSearchInput?.addEventListener('change', event => {
+        applyProductSearch(event.target.value)
+      })
+
+      productSearchInput?.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return
+        event.preventDefault()
+        applyProductSearch(event.target.value)
+      })
+    }
+
+    const loadProducts = async () => {
+      const response = await fetch('/backoffice/products')
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo de productos.')
+      state.products = await response.json()
+    }
+
+    const loadClients = async () => {
+      const response = await fetch('/backoffice/clients')
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo de clientes.')
+      state.clients = await response.json()
+    }
+
+    const loadSession = async () => {
+      const response = await fetch('/backoffice/session')
+      if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
+      state.session = await response.json()
+      syncRoleUi()
+    }
+
+    const loadCampaigns = async () => {
+      const response = await fetch('/backoffice/campaigns')
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo de campañas.')
+      state.campaigns = await response.json()
+      applyFilters()
+    }
+
+    const loadCampaign = async id => {
+      const keepEditMode = state.editMode && !state.creating && canWriteCampaigns()
+      const response = await fetch(`/backoffice/campaigns/${id}`)
+      if (!response.ok) throw new Error('No se pudo cargar la campaña seleccionada.')
+      state.creating = false
+      state.productSearch = ''
+      state.selectedCampaign = await response.json()
+      state.selectedCampaign.clientId = state.selectedCampaign.clientId || ''
+      state.selectedCampaign.productIds = state.selectedCampaign.productIds || []
+      state.selectedId = id
+      setMessage('', '')
+      setMode(keepEditMode)
+      renderList()
+    }
+
+    const saveCampaign = async () => {
+      if (!canWriteCampaigns() || !state.editMode || (!state.selectedId && !state.creating)) return
+      const form = document.getElementById('campaignForm')
+      const formData = new FormData(form)
+      const payload = {
+        name: formData.get('name'),
+        clientId: formData.get('clientId'),
+        description: formData.get('description'),
+        startDate: formData.get('startDate'),
+        endDate: formData.get('endDate'),
+        productIds: formData.getAll('productIds')
+      }
+      const wasCreating = state.creating
+
+      const response = await fetch(state.creating ? '/backoffice/campaigns' : `/backoffice/campaigns/${state.selectedId}`, {
+        method: state.creating ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo guardar la campaña.')
+
+      state.creating = false
+      state.selectedCampaign = result
+      state.selectedCampaign.clientId = result.clientId || ''
+      state.selectedCampaign.productIds = result.productIds || []
+      state.selectedId = result.ID
+      await loadCampaigns()
+      setMessage(wasCreating ? 'Campaña creada correctamente.' : 'Campaña guardada correctamente.', 'success')
+      setMode(false)
+      renderDetail()
+    }
+
+    const deleteCampaign = async () => {
+      if (!canDeleteCampaigns() || !state.editMode || state.creating || !state.selectedId) return
+      const confirmed = window.confirm(`¿Quieres eliminar la campaña "${state.selectedCampaign.name}"?`)
+      if (!confirmed) return
+
+      const response = await fetch(`/backoffice/campaigns/${state.selectedId}`, { method: 'DELETE' })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.message || 'No se pudo eliminar la campaña.')
+
+      state.selectedId = null
+      state.selectedCampaign = null
+      state.creating = false
+      setMessage('', '')
+      await loadCampaigns()
+      setMode(false)
+      refs.detailContent.innerHTML = '<div class="empty-state">Campaña eliminada correctamente. Selecciona otra campaña o crea una nueva.</div>'
+      refs.panelSubtitle.textContent = 'Selecciona una campaña del listado para ver su información.'
+    }
+
+    refs.searchInput.addEventListener('input', applyFilters)
+
+    const filterButtons = {
+      all: refs.filterAll,
+      active: refs.filterActive,
+      upcoming: refs.filterUpcoming,
+      expired: refs.filterExpired
+    }
+
+    Object.entries(filterButtons).forEach(([key, button]) => {
+      button.addEventListener('click', () => {
+        state.filter = key
+        Object.entries(filterButtons).forEach(([entryKey, entryButton]) => {
+          entryButton.classList.toggle('active', entryKey === key)
+        })
+        applyFilters()
+      })
+    })
+
+    refs.createButton.addEventListener('click', startCreateCampaign)
+    refs.exportExcelButton.addEventListener('click', () => {
+      if (!state.selectedId || state.creating) return
+      window.location.href = `/backoffice/campaigns/${state.selectedId}/export.xlsx`
+    })
+
+    refs.exportPdfButton.addEventListener('click', () => {
+      if (!state.selectedId || state.creating) return
+      window.open(`/backoffice/campaigns/${state.selectedId}/export.pdf`, '_blank', 'noopener')
+    })
+
+    refs.editModeButton.addEventListener('click', () => {
+      if (!state.selectedId || !canWriteCampaigns()) return
+      setMessage('', '')
+      setMode(!state.editMode)
+    })
+
+    refs.saveButton.addEventListener('click', async () => {
+      try {
+        await saveCampaign()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    refs.deleteButton.addEventListener('click', async () => {
+      try {
+        await deleteCampaign()
+      } catch (error) {
+        setMessage(error.message, 'error')
+      }
+    })
+
+    ;(async () => {
+      try {
+        await Promise.all([loadSession(), loadCampaigns(), loadProducts(), loadClients()])
+        if (requestedCampaignId) {
+          await loadCampaign(requestedCampaignId)
+        }
+      } catch (error) {
+        refs.detailContent.innerHTML = `<div class="empty-state">${error.message}</div>`
+      }
+    })()
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+- [x] Verify that the copilot-instructions.md file in the .github directory is created.
+- [x] Clarify Project Requirements
+  - Proyecto definido como backend SAP CAP con Node.js para backoffice de menaje de cocina.
+  - Namespace usado: `my.namespace`.
+- [x] Scaffold the Project
+  - Estructura creada en el directorio actual con `db/`, `srv/`, `package.json`, `README.md` y `.gitignore`.
+  - Dependencias CAP configuradas para SQLite local.
+- [x] Customize the Project
+  - Modelo CDS creado para `Products`, `Campaigns` y `ProductCampaigns`.
+  - Servicio OData `AdminService` expuesto en `/admin`.
+  - Datos iniciales añadidos en `db/data`.
+- [x] Install Required Extensions
+  - No extensions needed.
+- [x] Compile the Project
+  - Dependencias instaladas.
+  - Modelo compilado y desplegado correctamente en SQLite local.
+- [x] Create and Run Task
+  - Tarea de desarrollo creada y ejecutada para iniciar CAP en modo watch.
+- [ ] Launch the Project
+  - Pendiente de confirmación del usuario para modo debug.
+- [x] Ensure Documentation is Complete
+  - `README.md` actualizado con el alcance actual del proyecto.
+  - Este archivo limpiado y sincronizado con el estado real del workspace.

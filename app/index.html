@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BerlingerHaus Backoffice</title>
+  <style>
+    :root {
+      --sap-bg: #f5f6f7;
+      --sap-border: #d9d9d9;
+      --sap-text: #1d2d3e;
+      --sap-muted: #5b738b;
+      --sap-primary: #0a6ed1;
+      --sap-primary-hover: #085caf;
+      --sap-shadow: 0 0.5rem 1.5rem rgba(28, 57, 86, 0.12);
+      --sap-shadow-hover: 0 0.9rem 2rem rgba(28, 57, 86, 0.18);
+      --sap-radius: 1rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "72", "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(10, 110, 209, 0.08), transparent 30%),
+        linear-gradient(180deg, #eef4fb 0%, var(--sap-bg) 45%, #edf1f5 100%);
+      color: var(--sap-text);
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+    }
+
+    .hero-grid,
+    .dashboard-grid,
+    .tile-grid,
+    .kpi-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero-grid {
+      grid-template-columns: 1.4fr 0.95fr;
+      margin-bottom: 24px;
+    }
+
+    .dashboard-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 24px;
+    }
+
+    .tile-grid {
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+    }
+
+    .kpi-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 22px;
+    }
+
+    .hero,
+    .role-panel,
+    .dashboard-panel,
+    .tile,
+    .kpi-card {
+      border: 1px solid var(--sap-border);
+      border-radius: var(--sap-radius);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: var(--sap-shadow);
+    }
+
+    .hero {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .eyebrow,
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(10, 110, 209, 0.1);
+      color: var(--sap-primary);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      line-height: 1.08;
+      font-weight: 700;
+    }
+
+    .subtitle,
+    .section-copy,
+    .muted {
+      margin: 0;
+      color: var(--sap-muted);
+      line-height: 1.6;
+    }
+
+    .role-panel,
+    .dashboard-panel,
+    .kpi-card {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .section-title,
+    .tile-title,
+    .dashboard-item strong {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .section-title {
+      font-size: 1.18rem;
+    }
+
+    .role-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .role-form label {
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .button,
+    .role-form select {
+      min-height: 46px;
+      border-radius: 12px;
+      font: inherit;
+    }
+
+    .role-form select {
+      border: 1px solid #c6d8ea;
+      padding: 0 14px;
+      background: #fff;
+      color: var(--sap-text);
+    }
+
+    .button {
+      border: none;
+      padding: 0 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .button-primary {
+      background: var(--sap-primary);
+      color: #fff;
+    }
+
+    .button-primary:hover { background: var(--sap-primary-hover); }
+
+    .role-summary {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #f8fbff;
+      border: 1px solid #deebf7;
+    }
+
+    .kpi-card span,
+    .dashboard-item span,
+    .tile-copy {
+      color: var(--sap-muted);
+    }
+
+    .kpi-card span {
+      font-size: 0.9rem;
+    }
+
+    .kpi-card strong {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .dashboard-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .dashboard-item {
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #fbfdff;
+      border: 1px solid #e1ebf5;
+    }
+
+    .dashboard-item span {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .section-header {
+      margin: 24px 0 16px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 238px;
+      padding: 22px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      overflow: hidden;
+    }
+
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 7px;
+      background: linear-gradient(90deg, #0a6ed1 0%, #47a3ff 100%);
+    }
+
+    .tile:hover,
+    .tile:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: var(--sap-shadow-hover);
+      border-color: #aacbf2;
+      outline: none;
+    }
+
+    .tile-badge {
+      width: 54px;
+      height: 54px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(10, 110, 209, 0.1);
+      color: var(--sap-primary);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .tile-title {
+      margin: 18px 0 8px;
+      font-size: 1.4rem;
+    }
+
+    .tile-copy {
+      margin: 0;
+      line-height: 1.55;
+      font-size: 0.98rem;
+    }
+
+    .tile-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      margin-top: 18px;
+      padding: 0 18px;
+      border-radius: 0.85rem;
+      background: var(--sap-primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.96rem;
+      align-self: flex-start;
+      transition: background 0.18s ease;
+    }
+
+    .tile:hover .tile-action,
+    .tile:focus-visible .tile-action { background: var(--sap-primary-hover); }
+
+    .footer-note {
+      margin-top: 28px;
+      color: var(--sap-muted);
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 1100px) {
+      .hero-grid,
+      .dashboard-grid,
+      .kpi-grid,
+      .tile-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero-grid">
+      <section class="hero">
+        <span class="eyebrow">BerlingerHaus · Backoffice</span>
+        <h1>Panel ejecutivo para campañas, catálogo y clientes</h1>
+        <p class="subtitle">
+          El inicio ahora resume el estado operativo con KPIs accionables y permite demostrar el control de usuarios y permisos según el perfil que accede al backoffice.
+        </p>
+      </section>
+
+      <aside class="role-panel">
+        <div class="status-pill" id="currentRoleBadge">Rol actual: Administrador</div>
+        <div>
+          <h2 class="section-title">Control de usuarios y permisos</h2>
+          <p class="section-copy">Cambia de perfil para ver cómo se comporta el sistema para administración, comercial o consulta.</p>
+        </div>
+        <form class="role-form" id="roleForm">
+          <label for="roleSelect">Perfil de acceso</label>
+          <select id="roleSelect" name="role">
+            <option value="admin">Administrador</option>
+            <option value="commercial">Comercial</option>
+            <option value="readonly">Solo lectura</option>
+          </select>
+          <button class="button button-primary" type="submit">Aplicar perfil</button>
+        </form>
+        <div class="role-summary">
+          <strong id="roleTitle">Administrador</strong>
+          <p class="muted" id="roleSummary">Acceso completo a productos, campañas, clientes, borrado y exportaciones.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="kpi-grid" aria-label="Indicadores principales">
+      <article class="kpi-card"><span>Campañas activas</span><strong id="kpiActiveCampaigns">0</strong></article>
+      <article class="kpi-card"><span>Campañas próximas</span><strong id="kpiUpcomingCampaigns">0</strong></article>
+      <article class="kpi-card"><span>Productos sin stock</span><strong id="kpiOutOfStock">0</strong></article>
+      <article class="kpi-card"><span>Productos sin imagen</span><strong id="kpiWithoutImage">0</strong></article>
+      <article class="kpi-card"><span>Clientes inactivos</span><strong id="kpiInactiveClients">0</strong></article>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Resumen operativo">
+      <article class="dashboard-panel">
+        <div>
+          <h2 class="section-title">Campañas en marcha</h2>
+          <p class="section-copy">Resumen de campañas activas y próximas con cliente asociado.</p>
+        </div>
+        <div class="dashboard-list" id="campaignHighlights"></div>
+      </article>
+
+      <article class="dashboard-panel">
+        <div>
+          <h2 class="section-title">Alertas de catálogo</h2>
+          <p class="section-copy">Productos sin stock o sin imagen comercial preparada.</p>
+        </div>
+        <div class="dashboard-list" id="catalogHighlights"></div>
+      </article>
+
+      <article class="dashboard-panel">
+        <div>
+          <h2 class="section-title">Clientes a reactivar</h2>
+          <p class="section-copy">Clientes sin actividad reciente o todavía sin campañas registradas.</p>
+        </div>
+        <div class="dashboard-list" id="clientHighlights"></div>
+      </article>
+    </section>
+
+    <div class="section-header">
+      <h2 class="section-title">Áreas del backoffice</h2>
+      <p class="section-copy">Accesos principales para la operativa diaria.</p>
+    </div>
+
+    <section class="tile-grid" aria-label="Accesos principales del backoffice">
+      <a class="tile" href="/products/">
+        <div>
+          <span class="tile-badge">P</span>
+          <h2 class="tile-title">Productos</h2>
+          <p class="tile-copy">Consulta catálogo, valida imágenes, revisa stock y exporta fichas de producto.</p>
+        </div>
+        <span class="tile-action">Abrir productos</span>
+      </a>
+
+      <a class="tile" href="/campaigns/">
+        <div>
+          <span class="tile-badge">C</span>
+          <h2 class="tile-title">Campañas</h2>
+          <p class="tile-copy">Organiza campañas activas y futuras, asigna productos y controla la agenda comercial.</p>
+        </div>
+        <span class="tile-action">Abrir campañas</span>
+      </a>
+
+      <a class="tile" href="/clients/">
+        <div>
+          <span class="tile-badge">Cl</span>
+          <h2 class="tile-title">Clientes</h2>
+          <p class="tile-copy">Gestiona clientes y revisa su campaña activa, próximas acciones e histórico comercial.</p>
+        </div>
+        <span class="tile-action">Abrir clientes</span>
+      </a>
+    </section>
+
+    <p class="footer-note">
+      Dashboard inicial pensado para demo ejecutiva: combina operación diaria, control por perfiles y seguimiento comercial en una sola vista.
+    </p>
+  </main>
+
+  <script>
+    const refs = {
+      currentRoleBadge: document.getElementById('currentRoleBadge'),
+      roleForm: document.getElementById('roleForm'),
+      roleSelect: document.getElementById('roleSelect'),
+      roleTitle: document.getElementById('roleTitle'),
+      roleSummary: document.getElementById('roleSummary'),
+      campaignHighlights: document.getElementById('campaignHighlights'),
+      catalogHighlights: document.getElementById('catalogHighlights'),
+      clientHighlights: document.getElementById('clientHighlights'),
+      kpiActiveCampaigns: document.getElementById('kpiActiveCampaigns'),
+      kpiUpcomingCampaigns: document.getElementById('kpiUpcomingCampaigns'),
+      kpiOutOfStock: document.getElementById('kpiOutOfStock'),
+      kpiWithoutImage: document.getElementById('kpiWithoutImage'),
+      kpiInactiveClients: document.getElementById('kpiInactiveClients')
+    }
+
+    const roleDescriptions = {
+      admin: 'Acceso completo a productos, campañas, clientes, borrado y exportaciones.',
+      commercial: 'Puede crear y editar campañas y clientes, consultar productos y exportar información, pero no borrar ni modificar catálogo.',
+      readonly: 'Solo consulta y exportación. Ideal para dirección, revisión o demostraciones controladas.'
+    }
+
+    const formatDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('es-ES') : 'Sin fecha'
+
+    const renderItems = (container, items, emptyText, formatter) => {
+      container.innerHTML = items.length
+        ? items.map(formatter).join('')
+        : `<div class="dashboard-item"><span>${emptyText}</span></div>`
+    }
+
+    const renderSession = session => {
+      refs.currentRoleBadge.textContent = `Rol actual: ${session.label}`
+      refs.roleSelect.value = session.role
+      refs.roleTitle.textContent = session.label
+      refs.roleSummary.textContent = roleDescriptions[session.role] || ''
+    }
+
+    const renderDashboard = dashboard => {
+      refs.kpiActiveCampaigns.textContent = dashboard.kpis.activeCampaigns
+      refs.kpiUpcomingCampaigns.textContent = dashboard.kpis.upcomingCampaigns
+      refs.kpiOutOfStock.textContent = dashboard.kpis.outOfStockProducts
+      refs.kpiWithoutImage.textContent = dashboard.kpis.productsWithoutImage
+      refs.kpiInactiveClients.textContent = dashboard.kpis.inactiveClients
+
+      renderItems(
+        refs.campaignHighlights,
+        [...dashboard.highlights.activeCampaigns, ...dashboard.highlights.upcomingCampaigns].slice(0, 6),
+        'No hay campañas activas ni próximas ahora mismo.',
+        campaign => `
+          <div class="dashboard-item">
+            <strong>${campaign.name}</strong>
+            <span>${campaign.clientName} · ${formatDate(campaign.startDate)} - ${formatDate(campaign.endDate)}</span>
+          </div>
+        `
+      )
+
+      const catalogItems = [
+        ...dashboard.highlights.outOfStockProducts.map(product => ({
+          title: product.name,
+          detail: `${product.code} · Stock ${product.stock}`
+        })),
+        ...dashboard.highlights.productsWithoutImage.map(product => ({
+          title: product.name,
+          detail: `${product.code} · ${product.type} · Falta imagen`
+        }))
+      ].slice(0, 6)
+
+      renderItems(
+        refs.catalogHighlights,
+        catalogItems,
+        'No hay alertas de catálogo pendientes.',
+        item => `
+          <div class="dashboard-item">
+            <strong>${item.title}</strong>
+            <span>${item.detail}</span>
+          </div>
+        `
+      )
+
+      renderItems(
+        refs.clientHighlights,
+        dashboard.highlights.inactiveClients,
+        'No hay clientes inactivos o pendientes de reactivación.',
+        client => `
+          <div class="dashboard-item">
+            <strong>${client.name}</strong>
+            <span>${client.code} · ${client.lastActivity ? `Última actividad ${formatDate(client.lastActivity)}` : 'Sin campañas registradas'}</span>
+          </div>
+        `
+      )
+    }
+
+    const loadSession = async () => {
+      const response = await fetch('/backoffice/session')
+      if (!response.ok) throw new Error('No se pudo cargar la sesión de permisos.')
+      const session = await response.json()
+      renderSession(session)
+      return session
+    }
+
+    const loadDashboard = async () => {
+      const response = await fetch('/backoffice/dashboard')
+      if (!response.ok) throw new Error('No se pudo cargar el dashboard inicial.')
+      renderDashboard(await response.json())
+    }
+
+    refs.roleForm.addEventListener('submit', async event => {
+      event.preventDefault()
+
+      const response = await fetch('/backoffice/session/role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: refs.roleSelect.value })
+      })
+
+      if (!response.ok) return
+
+      renderSession(await response.json())
+      await loadDashboard()
+    })
+
+    ;(async () => {
+      try {
+        await loadSession()
+        await loadDashboard()
+      } catch (error) {
+        refs.campaignHighlights.innerHTML = `<div class="dashboard-item"><span>${error.message}</span></div>`
+      }
+    })()
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+gen/
+db.sqlite*
+.env
+.cloudflared.log
+.tunnel-url.txt
+.tmp-tunnel.js
