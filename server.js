@@ -47,7 +47,9 @@ const USER_ROLES = {
 const DEMO_BACKOFFICE_USERS = [
   { username: 'admin', password: 'Admin123!', displayName: 'Administrador', role: 'admin' },
   { username: 'comercial', password: 'Comercial123!', displayName: 'Equipo comercial', role: 'commercial' },
-  { username: 'lectura', password: 'Lectura123!', displayName: 'Consulta', role: 'readonly' }
+  { username: 'lectura', password: 'Lectura123!', displayName: 'Consulta', role: 'readonly' },
+  { username: 'marc', password: '48295173', displayName: 'Marc', role: 'commercial' },
+  { username: 'rodrigo', password: '59318462', displayName: 'Rodrigo', role: 'commercial' }
 ]
 
 const normalizeDecimal = value => value === '' || value === null || value === undefined ? null : Number(value)
