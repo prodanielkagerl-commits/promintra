@@ -57,7 +57,7 @@
         #0a6ed1;
       color: #fff;
       display: grid;
-      align-content: space-between;
+      align-content: center;
       gap: 28px;
       min-height: 620px;
     }
@@ -80,29 +80,10 @@
     }
 
     .hero p,
-    .feature-list span,
     .login-copy,
     .helper,
     .message {
       line-height: 1.6;
-    }
-
-    .feature-list {
-      display: grid;
-      gap: 14px;
-    }
-
-    .feature-card {
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      padding: 16px 18px;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .feature-card strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 1rem;
     }
 
     .login-panel {
@@ -198,15 +179,6 @@
       font-size: 0.9rem;
     }
 
-    code {
-      padding: 2px 6px;
-      border-radius: 8px;
-      background: #eef4fb;
-      color: var(--primary);
-      font-family: Consolas, monospace;
-      font-size: 0.88rem;
-    }
-
     @media (max-width: 900px) {
       .shell {
         grid-template-columns: 1fr;
@@ -232,21 +204,6 @@
         <p>
           El sistema ya exige autenticación antes de entrar al backoffice. Cada usuario accede con su propia cuenta y mantiene los permisos según su perfil.
         </p>
-      </div>
-
-      <div class="feature-list">
-        <article class="feature-card">
-          <strong>Control por rol</strong>
-          <span>Administrador, comercial o solo lectura, con permisos ya aplicados en backend y frontend.</span>
-        </article>
-        <article class="feature-card">
-          <strong>Sesión privada</strong>
-          <span>Las rutas del backoffice solo se sirven si la sesión es válida.</span>
-        </article>
-        <article class="feature-card">
-          <strong>Usuarios configurables</strong>
-          <span>Puedes definirlos en Render usando <code>BACKOFFICE_USERS_JSON</code>.</span>
-        </article>
       </div>
     </section>
 
