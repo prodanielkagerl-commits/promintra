@@ -486,6 +486,7 @@
       <div class="toolbar">
         <a class="button button-secondary" href="/">Volver al inicio</a>
         <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="logoutButton" type="button">Cerrar sesión</button>
         <button class="button button-secondary" id="createButton" type="button">Crear producto</button>
         <a class="button button-secondary" href="/backoffice/products/export.xlsx">Exportar a Excel</a>
         <a class="button button-secondary" href="/backoffice/products/export.pdf" target="_blank" rel="noopener noreferrer">Exportar a PDF</a>
@@ -535,6 +536,7 @@
       session: {
         role: 'admin',
         label: 'Administrador',
+        displayName: 'Administrador',
         permissions: {
           products: { read: true, write: true, delete: true, export: true }
         }
@@ -547,6 +549,7 @@
       detailContent: document.getElementById('detailContent'),
       panelSubtitle: document.getElementById('panelSubtitle'),
       roleStatus: document.getElementById('roleStatus'),
+      logoutButton: document.getElementById('logoutButton'),
       createButton: document.getElementById('createButton'),
       editModeButton: document.getElementById('editModeButton'),
       saveButton: document.getElementById('saveButton'),
@@ -560,6 +563,9 @@
     const productPermissions = () => state.session.permissions?.products || {}
     const canWriteProducts = () => Boolean(productPermissions().write)
     const canDeleteProducts = () => Boolean(productPermissions().delete)
+    const redirectToLogin = () => {
+      window.location.href = '/login/'
+    }
 
     const imageSrc = value => value || ''
     const escapeHtml = value => String(value ?? '')
@@ -606,7 +612,7 @@
     }
 
     const syncRoleUi = () => {
-      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.roleStatus.textContent = `${state.session.displayName || 'Usuario'} · ${state.session.label}`
       refs.createButton.disabled = !canWriteProducts()
     }
 
@@ -787,10 +793,19 @@
 
     const loadSession = async () => {
       const response = await fetch('/backoffice/session')
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
       if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
       state.session = await response.json()
       syncRoleUi()
     }
+
+    refs.logoutButton.addEventListener('click', async () => {
+      await fetch('/backoffice/logout', { method: 'POST' })
+      redirectToLogin()
+    })
 
     const loadProduct = async id => {
       const keepEditMode = state.editMode && !state.creating && canWriteProducts()

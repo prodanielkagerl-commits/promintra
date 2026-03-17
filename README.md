@@ -49,3 +49,45 @@ Si se quiere la opción más rápida tipo PaaS, el repositorio ya incluye soport
 - [docs/pilot-render.md](docs/pilot-render.md): guía del piloto rápido en Render
 
 En este proyecto no hace falta desplegar frontend y backend por separado porque la UI ya se sirve desde la propia aplicación Node/CAP.
+
+## Login del backoffice
+
+El acceso al sistema ya está protegido con login y sesión por cookie.
+
+Puedes definir usuarios de dos formas:
+
+- Variable `BACKOFFICE_USERS_JSON` con varios usuarios
+- Variables `BACKOFFICE_ADMIN_USER` y `BACKOFFICE_ADMIN_PASSWORD` para un único administrador
+
+Ejemplo recomendado para Render:
+
+```json
+[
+	{
+		"username": "daniel",
+		"password": "TuClaveSegura123!",
+		"displayName": "Daniel",
+		"role": "admin"
+	},
+	{
+		"username": "maria",
+		"password": "OtraClaveSegura123!",
+		"displayName": "Maria Comercial",
+		"role": "commercial"
+	},
+	{
+		"username": "direccion",
+		"password": "LecturaSegura123!",
+		"displayName": "Dirección",
+		"role": "readonly"
+	}
+]
+```
+
+Roles disponibles:
+
+- `admin`
+- `commercial`
+- `readonly`
+
+Si no configuras usuarios, la aplicación arranca con credenciales demo temporales. En producción conviene reemplazarlas inmediatamente con variables reales de Render.

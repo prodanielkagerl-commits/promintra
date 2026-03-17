@@ -55,8 +55,9 @@ El script [scripts/render-start.js](../scripts/render-start.js):
 
 1. Comprueba que existe `DATABASE_URL`
 2. Fuerza CAP a usar PostgreSQL
-3. Ejecuta `cds deploy --to db`
+3. Ejecuta `cds deploy`
 4. Arranca `cds serve`
+5. Fuerza autenticación interna del backoffice para no depender de XSUAA en este piloto
 
 Así puedes seguir usando SQLite localmente y PostgreSQL en Render sin tocar el flujo local.
 
@@ -66,6 +67,33 @@ Render debe proporcionar:
 
 - `DATABASE_URL`
 - `NODE_ENV=production`
+- `BACKOFFICE_SESSION_SECRET`
+
+Si quieres varios usuarios, añade también `BACKOFFICE_USERS_JSON` con un JSON como este:
+
+```json
+[
+	{
+		"username": "daniel",
+		"password": "TuClaveSegura123!",
+		"displayName": "Daniel",
+		"role": "admin"
+	},
+	{
+		"username": "maria",
+		"password": "OtraClaveSegura123!",
+		"displayName": "Maria Comercial",
+		"role": "commercial"
+	}
+]
+```
+
+Si solo quieres una cuenta inicial, también puedes usar:
+
+- `BACKOFFICE_ADMIN_USER`
+- `BACKOFFICE_ADMIN_PASSWORD`
+- `BACKOFFICE_ADMIN_NAME`
+- `BACKOFFICE_ADMIN_ROLE`
 
 ## Consideraciones del piloto
 

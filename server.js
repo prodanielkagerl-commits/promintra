@@ -4,12 +4,16 @@ const fs = require('fs')
 const multer = require('multer')
 const path = require('path')
 const PDFDocument = require('pdfkit')
+const crypto = require('crypto')
 const cds = require('@sap/cds')
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql
 const MAX_PRODUCT_IMAGES = 4
 const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg']
+const USER_SESSION_COOKIE = 'bh_session'
 const USER_ROLE_COOKIE = 'bh_role'
+const SESSION_TTL_SECONDS = 60 * 60 * 12
+const SESSION_SECRET = process.env.BACKOFFICE_SESSION_SECRET || 'berlingerhaus-dev-session-secret'
 const USER_ROLES = {
   admin: {
     label: 'Administrador',
@@ -39,6 +43,12 @@ const USER_ROLES = {
     }
   }
 }
+
+const DEMO_BACKOFFICE_USERS = [
+  { username: 'admin', password: 'Admin123!', displayName: 'Administrador', role: 'admin' },
+  { username: 'comercial', password: 'Comercial123!', displayName: 'Equipo comercial', role: 'commercial' },
+  { username: 'lectura', password: 'Lectura123!', displayName: 'Consulta', role: 'readonly' }
+]
 
 const normalizeDecimal = value => value === '' || value === null || value === undefined ? null : Number(value)
 const normalizeInteger = value => value === '' || value === null || value === undefined ? 0 : Number.parseInt(value, 10)
@@ -100,6 +110,57 @@ const todayIsoDate = () => new Date().toISOString().slice(0, 10)
 
 const normalizeRole = role => USER_ROLES[role] ? role : 'admin'
 
+const normalizeBackofficeUser = user => {
+  const username = String(user?.username || user?.user || '').trim()
+  const password = String(user?.password || '').trim()
+  if (!username || !password) return null
+
+  return {
+    username,
+    password,
+    displayName: String(user?.displayName || user?.name || username).trim() || username,
+    role: normalizeRole(user?.role)
+  }
+}
+
+const loadConfiguredUsers = () => {
+  const fromJson = String(process.env.BACKOFFICE_USERS_JSON || '').trim()
+  if (fromJson) {
+    try {
+      const parsed = JSON.parse(fromJson)
+      const candidates = Array.isArray(parsed)
+        ? parsed
+        : Object.entries(parsed).map(([username, config]) => ({
+            username,
+            ...(typeof config === 'string' ? { password: config } : config)
+          }))
+
+      const users = candidates.map(normalizeBackofficeUser).filter(Boolean)
+      if (users.length) return users
+    } catch (error) {
+      console.warn('BACKOFFICE_USERS_JSON no se pudo interpretar. Se usarán usuarios demo.', error.message)
+    }
+  }
+
+  const adminUser = String(process.env.BACKOFFICE_ADMIN_USER || '').trim()
+  const adminPassword = String(process.env.BACKOFFICE_ADMIN_PASSWORD || '').trim()
+  if (adminUser && adminPassword) {
+    return [normalizeBackofficeUser({
+      username: adminUser,
+      password: adminPassword,
+      displayName: process.env.BACKOFFICE_ADMIN_NAME || adminUser,
+      role: process.env.BACKOFFICE_ADMIN_ROLE || 'admin'
+    })].filter(Boolean)
+  }
+
+  console.warn('No hay usuarios de backoffice configurados. Se usarán credenciales demo hasta que definas BACKOFFICE_USERS_JSON o BACKOFFICE_ADMIN_USER/BACKOFFICE_ADMIN_PASSWORD.')
+  return DEMO_BACKOFFICE_USERS.map(normalizeBackofficeUser).filter(Boolean)
+}
+
+const BACKOFFICE_USERS = new Map(
+  loadConfiguredUsers().map(user => [user.username.toLowerCase(), user])
+)
+
 const parseCookies = cookieHeader => {
   if (!cookieHeader) return {}
 
@@ -118,19 +179,108 @@ const parseCookies = cookieHeader => {
     }, {})
 }
 
-const buildRoleSession = role => {
-  const normalizedRole = normalizeRole(role)
+const buildUserSession = user => {
+  if (!user) {
+    return {
+      isAuthenticated: false,
+      username: null,
+      displayName: null,
+      role: null,
+      label: 'Sin sesión',
+      permissions: {}
+    }
+  }
+
+  const normalizedRole = normalizeRole(user.role)
   const roleConfig = USER_ROLES[normalizedRole]
 
   return {
+    isAuthenticated: true,
+    username: user.username,
+    displayName: user.displayName,
     role: normalizedRole,
     label: roleConfig.label,
     permissions: roleConfig.permissions
   }
 }
 
-const setRoleCookie = (res, role) => {
-  res.setHeader('Set-Cookie', `${USER_ROLE_COOKIE}=${encodeURIComponent(role)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`)
+const buildCookie = (name, value, maxAge) => {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
+  return `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secure}`
+}
+
+const createSessionToken = username => {
+  const payload = Buffer.from(JSON.stringify({
+    username,
+    expiresAt: Date.now() + SESSION_TTL_SECONDS * 1000
+  })).toString('base64url')
+
+  const signature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url')
+
+  return `${payload}.${signature}`
+}
+
+const readSessionToken = token => {
+  if (!token) return null
+
+  const [payload, signature] = String(token).split('.')
+  if (!payload || !signature) return null
+
+  const expectedSignature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url')
+
+  const providedBuffer = Buffer.from(signature)
+  const expectedBuffer = Buffer.from(expectedSignature)
+  if (providedBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(providedBuffer, expectedBuffer)) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+    if (!parsed?.username || !parsed?.expiresAt || parsed.expiresAt < Date.now()) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const setSessionCookie = (res, username) => {
+  res.setHeader('Set-Cookie', [
+    buildCookie(USER_SESSION_COOKIE, createSessionToken(username), SESSION_TTL_SECONDS),
+    buildCookie(USER_ROLE_COOKIE, '', 0)
+  ])
+}
+
+const clearSessionCookie = res => {
+  res.setHeader('Set-Cookie', [
+    buildCookie(USER_SESSION_COOKIE, '', 0),
+    buildCookie(USER_ROLE_COOKIE, '', 0)
+  ])
+}
+
+const findBackofficeUser = username => BACKOFFICE_USERS.get(String(username || '').trim().toLowerCase()) || null
+
+const passwordsMatch = (providedPassword, expectedPassword) => {
+  const providedBuffer = Buffer.from(String(providedPassword || ''))
+  const expectedBuffer = Buffer.from(String(expectedPassword || ''))
+  if (providedBuffer.length !== expectedBuffer.length) return false
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+}
+
+const authenticateBackofficeUser = (username, password) => {
+  const user = findBackofficeUser(username)
+  if (!user || !passwordsMatch(password, user.password)) return null
+  return user
+}
+
+const requireAuthenticatedApi = (req, res, next) => {
+  if (req.currentUser) return next()
+  return res.status(401).json({ message: 'Debes iniciar sesión para acceder al backoffice.' })
 }
 
 const authorizeModuleAccess = (moduleName, accessLevel) => (req, res, next) => {
@@ -613,6 +763,7 @@ module.exports = async options => {
   const app = express()
   const appFolder = path.join(__dirname, 'app')
   const productAssetsFolder = path.join(appFolder, 'assets', 'products')
+  const protectedPagePaths = new Set(['/', '/products', '/products/', '/campaigns', '/campaigns/', '/clients', '/clients/'])
 
   fs.mkdirSync(productAssetsFolder, { recursive: true })
 
@@ -638,20 +789,55 @@ module.exports = async options => {
     }
   })
 
-  app.use(express.static(appFolder))
   app.use('/backoffice', express.json())
   app.use((req, _res, next) => {
     const cookies = parseCookies(req.headers.cookie)
-    req.userSession = buildRoleSession(cookies[USER_ROLE_COOKIE])
+    const session = readSessionToken(cookies[USER_SESSION_COOKIE])
+    req.currentUser = findBackofficeUser(session?.username)
+    req.userSession = buildUserSession(req.currentUser)
     req.userRole = req.userSession.role
     next()
   })
+
+  app.get(['/login', '/login/'], (req, res) => {
+    if (req.currentUser) return res.redirect('/')
+    res.sendFile(path.join(appFolder, 'login', 'index.html'))
+  })
+
+  app.post('/backoffice/login', (req, res) => {
+    const username = String(req.body?.username || '').trim()
+    const password = String(req.body?.password || '')
+    const user = authenticateBackofficeUser(username, password)
+
+    if (!user) {
+      return res.status(401).json({ message: 'Usuario o contraseña incorrectos.' })
+    }
+
+    setSessionCookie(res, user.username)
+    return res.json(buildUserSession(user))
+  })
+
+  app.post('/backoffice/logout', (_req, res) => {
+    clearSessionCookie(res)
+    res.json({ success: true })
+  })
+
+  app.use((req, res, next) => {
+    if (!protectedPagePaths.has(req.path)) return next()
+    if (req.currentUser) return next()
+    return res.redirect('/login/')
+  })
+
+  app.use('/backoffice', requireAuthenticatedApi)
+  app.use('/admin', requireAuthenticatedApi)
 
   app.use('/admin', (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next()
     if (req.userRole === 'admin') return next()
     return res.status(403).json({ message: 'Solo el perfil Administrador puede modificar datos desde el servicio OData.' })
   })
+
+  app.use(express.static(appFolder))
 
   options.app = app
   options.static = false
@@ -664,13 +850,7 @@ module.exports = async options => {
   const { Products, ProductImages, Campaigns, Clients, ProductCampaigns } = cds.entities('my.namespace')
 
   app.get('/backoffice/session', (_req, res) => {
-    res.json(buildRoleSession(_req.userRole))
-  })
-
-  app.post('/backoffice/session/role', (req, res) => {
-    const role = normalizeRole(String(req.body?.role || '').trim())
-    setRoleCookie(res, role)
-    res.json(buildRoleSession(role))
+    res.json(_req.userSession)
   })
 
   app.get('/backoffice/dashboard', authorizeModuleAccess('dashboard', 'read'), async (_req, res, next) => {

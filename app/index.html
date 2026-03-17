@@ -323,24 +323,16 @@
       </section>
 
       <aside class="role-panel">
-        <div class="status-pill" id="currentRoleBadge">Rol actual: Administrador</div>
+        <div class="status-pill" id="currentRoleBadge">Sesión activa</div>
         <div>
-          <h2 class="section-title">Control de usuarios y permisos</h2>
-          <p class="section-copy">Cambia de perfil para ver cómo se comporta el sistema para administración, comercial o consulta.</p>
+          <h2 class="section-title">Acceso y permisos</h2>
+          <p class="section-copy">Cada usuario entra con sus credenciales y hereda los permisos de su perfil para operar dentro del backoffice.</p>
         </div>
-        <form class="role-form" id="roleForm">
-          <label for="roleSelect">Perfil de acceso</label>
-          <select id="roleSelect" name="role">
-            <option value="admin">Administrador</option>
-            <option value="commercial">Comercial</option>
-            <option value="readonly">Solo lectura</option>
-          </select>
-          <button class="button button-primary" type="submit">Aplicar perfil</button>
-        </form>
         <div class="role-summary">
-          <strong id="roleTitle">Administrador</strong>
+          <strong id="roleTitle">Usuario autenticado</strong>
           <p class="muted" id="roleSummary">Acceso completo a productos, campañas, clientes, borrado y exportaciones.</p>
         </div>
+        <button class="button button-primary" id="logoutButton" type="button">Cerrar sesión</button>
       </aside>
     </section>
 
@@ -420,10 +412,9 @@
   <script>
     const refs = {
       currentRoleBadge: document.getElementById('currentRoleBadge'),
-      roleForm: document.getElementById('roleForm'),
-      roleSelect: document.getElementById('roleSelect'),
       roleTitle: document.getElementById('roleTitle'),
       roleSummary: document.getElementById('roleSummary'),
+      logoutButton: document.getElementById('logoutButton'),
       campaignHighlights: document.getElementById('campaignHighlights'),
       catalogHighlights: document.getElementById('catalogHighlights'),
       clientHighlights: document.getElementById('clientHighlights'),
@@ -440,6 +431,10 @@
       readonly: 'Solo consulta y exportación. Ideal para dirección, revisión o demostraciones controladas.'
     }
 
+    const redirectToLogin = () => {
+      window.location.href = '/login/'
+    }
+
     const formatDate = value => value ? new Date(`${value}T00:00:00`).toLocaleDateString('es-ES') : 'Sin fecha'
 
     const renderItems = (container, items, emptyText, formatter) => {
@@ -449,9 +444,8 @@
     }
 
     const renderSession = session => {
-      refs.currentRoleBadge.textContent = `Rol actual: ${session.label}`
-      refs.roleSelect.value = session.role
-      refs.roleTitle.textContent = session.label
+      refs.currentRoleBadge.textContent = `Sesión activa: ${session.displayName}`
+      refs.roleTitle.textContent = `${session.displayName} · ${session.label}`
       refs.roleSummary.textContent = roleDescriptions[session.role] || ''
     }
 
@@ -512,6 +506,10 @@
 
     const loadSession = async () => {
       const response = await fetch('/backoffice/session')
+      if (response.status === 401) {
+        redirectToLogin()
+        return null
+      }
       if (!response.ok) throw new Error('No se pudo cargar la sesión de permisos.')
       const session = await response.json()
       renderSession(session)
@@ -524,24 +522,15 @@
       renderDashboard(await response.json())
     }
 
-    refs.roleForm.addEventListener('submit', async event => {
-      event.preventDefault()
-
-      const response = await fetch('/backoffice/session/role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: refs.roleSelect.value })
-      })
-
-      if (!response.ok) return
-
-      renderSession(await response.json())
-      await loadDashboard()
+    refs.logoutButton.addEventListener('click', async () => {
+      await fetch('/backoffice/logout', { method: 'POST' })
+      redirectToLogin()
     })
 
     ;(async () => {
       try {
-        await loadSession()
+        const session = await loadSession()
+        if (!session) return
         await loadDashboard()
       } catch (error) {
         refs.campaignHighlights.innerHTML = `<div class="dashboard-item"><span>${error.message}</span></div>`

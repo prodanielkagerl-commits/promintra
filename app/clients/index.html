@@ -214,6 +214,7 @@
       <div class="toolbar">
         <a class="button button-secondary" href="/">Volver al inicio</a>
         <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="logoutButton" type="button">Cerrar sesión</button>
         <button class="button button-secondary" id="createButton" type="button">Crear cliente</button>
         <span class="status-pill" id="modeStatus">Modo visualización</span>
         <button class="button button-secondary" id="editModeButton" type="button" disabled>Editar cliente</button>
@@ -261,6 +262,7 @@
       session: {
         role: 'admin',
         label: 'Administrador',
+        displayName: 'Administrador',
         permissions: {
           clients: { read: true, write: true, delete: true }
         }
@@ -273,6 +275,7 @@
       detailContent: document.getElementById('detailContent'),
       panelSubtitle: document.getElementById('panelSubtitle'),
       roleStatus: document.getElementById('roleStatus'),
+      logoutButton: document.getElementById('logoutButton'),
       createButton: document.getElementById('createButton'),
       editModeButton: document.getElementById('editModeButton'),
       saveButton: document.getElementById('saveButton'),
@@ -291,6 +294,9 @@
     const clientPermissions = () => state.session.permissions?.clients || {}
     const canWriteClients = () => Boolean(clientPermissions().write)
     const canDeleteClients = () => Boolean(clientPermissions().delete)
+    const redirectToLogin = () => {
+      window.location.href = '/login/'
+    }
 
     const emptyClient = () => ({
       ID: null,
@@ -319,7 +325,7 @@
     }
 
     const syncRoleUi = () => {
-      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.roleStatus.textContent = `${state.session.displayName || 'Usuario'} · ${state.session.label}`
       refs.createButton.disabled = !canWriteClients()
     }
 
@@ -472,10 +478,19 @@
 
     const loadSession = async () => {
       const response = await fetch('/backoffice/session')
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
       if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
       state.session = await response.json()
       syncRoleUi()
     }
+
+    refs.logoutButton.addEventListener('click', async () => {
+      await fetch('/backoffice/logout', { method: 'POST' })
+      redirectToLogin()
+    })
 
     const loadClient = async id => {
       const keepEditMode = state.editMode && !state.creating && canWriteClients()

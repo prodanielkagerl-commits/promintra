@@ -428,6 +428,7 @@
       <div class="toolbar">
         <a class="button button-secondary" href="/">Volver al inicio</a>
         <span class="status-pill" id="roleStatus">Rol: Administrador</span>
+        <button class="button button-secondary" id="logoutButton" type="button">Cerrar sesión</button>
         <button class="button button-secondary" id="createButton" type="button">Crear campaña</button>
         <button class="button button-secondary" id="exportExcelButton" type="button" disabled>Exportar a Excel</button>
         <button class="button button-secondary" id="exportPdfButton" type="button" disabled>Exportar a PDF</button>
@@ -485,6 +486,7 @@
       session: {
         role: 'admin',
         label: 'Administrador',
+        displayName: 'Administrador',
         permissions: {
           campaigns: { read: true, write: true, delete: true, export: true }
         }
@@ -499,6 +501,7 @@
       detailContent: document.getElementById('detailContent'),
       panelSubtitle: document.getElementById('panelSubtitle'),
       roleStatus: document.getElementById('roleStatus'),
+      logoutButton: document.getElementById('logoutButton'),
       createButton: document.getElementById('createButton'),
       exportExcelButton: document.getElementById('exportExcelButton'),
       exportPdfButton: document.getElementById('exportPdfButton'),
@@ -517,6 +520,9 @@
     const campaignPermissions = () => state.session.permissions?.campaigns || {}
     const canWriteCampaigns = () => Boolean(campaignPermissions().write)
     const canDeleteCampaigns = () => Boolean(campaignPermissions().delete)
+    const redirectToLogin = () => {
+      window.location.href = '/login/'
+    }
 
     const emptyCampaign = () => ({ ID: null, name: '', description: '', startDate: '', endDate: '', clientId: '', client: null, productIds: [] })
 
@@ -553,7 +559,7 @@
     }
 
     const syncRoleUi = () => {
-      refs.roleStatus.textContent = `Rol: ${state.session.label}`
+      refs.roleStatus.textContent = `${state.session.displayName || 'Usuario'} · ${state.session.label}`
       refs.createButton.disabled = !canWriteCampaigns()
     }
 
@@ -761,10 +767,19 @@
 
     const loadSession = async () => {
       const response = await fetch('/backoffice/session')
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
       if (!response.ok) throw new Error('No se pudo cargar el perfil de acceso.')
       state.session = await response.json()
       syncRoleUi()
     }
+
+    refs.logoutButton.addEventListener('click', async () => {
+      await fetch('/backoffice/logout', { method: 'POST' })
+      redirectToLogin()
+    })
 
     const loadCampaigns = async () => {
       const response = await fetch('/backoffice/campaigns')

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso · BerlingerHaus Backoffice</title>
+  <style>
+    :root {
+      --bg: #eef4fb;
+      --surface: rgba(255, 255, 255, 0.95);
+      --border: #d7e2ec;
+      --text: #1d2d3e;
+      --muted: #5b738b;
+      --primary: #0a6ed1;
+      --primary-hover: #085caf;
+      --danger: #c0392b;
+      --shadow: 0 1rem 2.5rem rgba(24, 52, 81, 0.14);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      font-family: "72", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(10, 110, 209, 0.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(16, 126, 62, 0.12), transparent 24%),
+        linear-gradient(180deg, #f5f9fd 0%, var(--bg) 44%, #edf2f6 100%);
+    }
+
+    .shell {
+      width: min(100%, 1040px);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      overflow: hidden;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero,
+    .login-panel {
+      padding: 40px;
+    }
+
+    .hero {
+      background:
+        linear-gradient(160deg, rgba(10, 110, 209, 0.96) 0%, rgba(8, 92, 175, 0.95) 48%, rgba(7, 62, 122, 0.96) 100%),
+        #0a6ed1;
+      color: #fff;
+      display: grid;
+      align-content: space-between;
+      gap: 28px;
+      min-height: 620px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2.3rem, 4vw, 3.6rem);
+      line-height: 1.04;
+    }
+
+    .hero p,
+    .feature-list span,
+    .login-copy,
+    .helper,
+    .message {
+      line-height: 1.6;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .feature-card {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .feature-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+
+    .login-panel {
+      display: grid;
+      align-content: center;
+      gap: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #f9fbfd 100%);
+    }
+
+    .login-panel h2 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    .login-copy {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 0.94rem;
+    }
+
+    input {
+      min-height: 54px;
+      padding: 0 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #8cb8e8;
+      box-shadow: 0 0 0 4px rgba(10, 110, 209, 0.12);
+    }
+
+    button {
+      min-height: 54px;
+      border: none;
+      border-radius: 14px;
+      font: inherit;
+      font-weight: 700;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+      transform: none;
+    }
+
+    .message {
+      display: none;
+      margin: 0;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(192, 57, 43, 0.1);
+      color: var(--danger);
+    }
+
+    .helper {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #eef4fb;
+      color: var(--primary);
+      font-family: Consolas, monospace;
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .hero,
+      .login-panel {
+        padding: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">BerlingerHaus · Backoffice</span>
+        <h1>Acceso seguro para catálogo, campañas y clientes</h1>
+        <p>
+          El sistema ya exige autenticación antes de entrar al backoffice. Cada usuario accede con su propia cuenta y mantiene los permisos según su perfil.
+        </p>
+      </div>
+
+      <div class="feature-list">
+        <article class="feature-card">
+          <strong>Control por rol</strong>
+          <span>Administrador, comercial o solo lectura, con permisos ya aplicados en backend y frontend.</span>
+        </article>
+        <article class="feature-card">
+          <strong>Sesión privada</strong>
+          <span>Las rutas del backoffice solo se sirven si la sesión es válida.</span>
+        </article>
+        <article class="feature-card">
+          <strong>Usuarios configurables</strong>
+          <span>Puedes definirlos en Render usando <code>BACKOFFICE_USERS_JSON</code>.</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div>
+        <h2>Iniciar sesión</h2>
+        <p class="login-copy">Introduce el usuario y la contraseña que definas para tu equipo.</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="username">Usuario</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+
+        <button id="submitButton" type="submit">Entrar al backoffice</button>
+        <p id="formMessage" class="message"></p>
+      </form>
+
+      <p class="helper">
+        Si todavía no has configurado usuarios en producción, el sistema puede estar usando credenciales demo temporales. Conviene sustituirlas cuanto antes en Render.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const refs = {
+      loginForm: document.getElementById('loginForm'),
+      submitButton: document.getElementById('submitButton'),
+      formMessage: document.getElementById('formMessage')
+    }
+
+    const setMessage = text => {
+      refs.formMessage.className = 'message'
+      refs.formMessage.textContent = text
+      if (text) refs.formMessage.classList.add('error')
+    }
+
+    refs.loginForm.addEventListener('submit', async event => {
+      event.preventDefault()
+      refs.submitButton.disabled = true
+      setMessage('')
+
+      const formData = new FormData(refs.loginForm)
+      const payload = {
+        username: String(formData.get('username') || '').trim(),
+        password: String(formData.get('password') || '')
+      }
+
+      try {
+        const response = await fetch('/backoffice/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(result.message || 'No se pudo iniciar sesión.')
+
+        window.location.href = '/'
+      } catch (error) {
+        setMessage(error.message)
+      } finally {
+        refs.submitButton.disabled = false
+      }
+    })
+  </script>
+</body>
+</html>
