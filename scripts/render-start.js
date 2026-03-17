@@ -25,6 +25,7 @@ const executable = process.platform === 'win32' ? 'npx.cmd' : 'npx'
 const env = {
   ...process.env,
   NODE_ENV: process.env.NODE_ENV || 'production',
+  CDS_REQUIRES_AUTH_KIND: 'dummy',
   CDS_REQUIRES_DB_KIND: 'postgres',
   CDS_REQUIRES_DB_IMPL: '@cap-js/postgres',
   CDS_REQUIRES_DB_CREDENTIALS_HOST: databaseUrl.hostname,
