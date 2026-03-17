@@ -14,7 +14,7 @@ const env = {
   CDS_REQUIRES_DB_CREDENTIALS_URL: process.env.DATABASE_URL
 }
 
-const deploy = spawnSync(executable, ['cds', 'deploy', '--to', 'db'], {
+const deploy = spawnSync(executable, ['cds', 'deploy'], {
   env,
   stdio: 'inherit'
 })
